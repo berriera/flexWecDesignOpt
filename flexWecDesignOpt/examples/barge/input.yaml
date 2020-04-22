@@ -1,0 +1,12 @@
+device: barge
+run_WAMIT_directory: C:\WAMITv7\
+common_file_directory: C:\barge
+
+substitutions:
+  {L: length, W: width, H: height}
+
+cases:
+  - 1: {length: 80, width: 10, height: 10}
+  - 2: {length: 70, width: 10, height: 10}
+  - 3: {length: 60, width: 10, height: 10}
+  - 4: {length: 50, width: 10, height: 10}
