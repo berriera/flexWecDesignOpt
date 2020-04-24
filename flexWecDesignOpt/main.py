@@ -29,14 +29,21 @@ def create_case_directory(case_number, output_directory):
     import os
     path = output_directory + '/case_' + str(case_number)
     os.makedirs(path)
+    return path
 
 
-def create_case_files():
+def create_case_files(common_bem_file_folder, copy_folder):
+    import shutil
+    import os
+    files = os.listdir(common_bem_file_folder)
+    for bem_input_file in files:
+        file = common_bem_file_folder + '/' + bem_input_file
+        shutil.copy(file, copy_folder)
     return
 
 
 def run_wamit():
-    # subprocess.run(["C:\WAMITv7", "runwamit", "test01"]) # can also try subprocess.Popen
+    # subprocess.run("C:\WAMITv7", "runwamit", "test01"]) # can also try subprocess.Popen
     return
 
 
@@ -49,13 +56,13 @@ cases_file = input_file_names['cases_file']
 design_data = np.genfromtxt(cases_file, delimiter=',')
 design_count = design_data.shape[0]
 
-for case in range(1, design_count + 1):
+for case in range(design_count):
     print(case)
     design_variables = design_data[case, :]
     print(design_variables)
-    create_case_directory(case, input_file_names['output_directory'])
-    create_case_files()
-    run_wamit()
+    case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
+    create_case_files(input_file_names['common_file_directory'], case_output_folder)
+    run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
     read_output()
 
 # if __name__ == "__main__":
