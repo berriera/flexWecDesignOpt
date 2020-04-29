@@ -68,8 +68,8 @@ def run_wamit(output_folder, bem_command):
     import os
     import subprocess
     os.chdir(output_folder)
-    # subprocess.Popen()
-    subprocess.run(bem_command)
+    subprocess.Popen('powershell.exe ' + bem_command)
+    # subprocess.run(bem_command)
     return
 
 
