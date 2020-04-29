@@ -18,13 +18,13 @@ parser.add_argument('-r', '--run',
 args = parser.parse_args(sys.argv[1:])
 
 
-def parse_input():
+def parse_input(input_file_location):
     """
 
     :return:
     """
     import yaml
-    with open('C:/Users/13365/Documents/GitHub/flexWecDesignOpt/flexWecDesignOpt/examples/barge/input.yaml', 'r') as f:
+    with open(input_file_location, 'r') as f:
         file_names = yaml.safe_load(f)
     return file_names
 
@@ -81,7 +81,7 @@ def read_output():
     return
 
 
-input_file_names = parse_input()
+input_file_names = parse_input(args.input)
 cases_file = input_file_names['cases_file']
 design_data = np.genfromtxt(cases_file, delimiter=',')
 design_count = design_data.shape[0]
