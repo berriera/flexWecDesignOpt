@@ -91,8 +91,9 @@ for case in range(design_count):
     print(design_variables)
     case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
     create_case_files(input_file_names['common_file_directory'], case_output_folder)
-    run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
-    read_output()
+    if args.run == True
+        run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
+        read_output()
 
 # if __name__ == "__main__":
 #    main()
