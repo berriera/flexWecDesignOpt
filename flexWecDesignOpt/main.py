@@ -42,19 +42,48 @@ def create_case_directory(case_number, output_directory):
     return path
 
 
-def create_case_files(common_bem_file_folder, copy_folder):
+def create_case_files(common_bem_file_folder, copy_folder, design_vars):
     """
 
     :param common_bem_file_folder:
     :param copy_folder:
     :return:
     """
+
+    def change_case_file(text_file, design_var):
+        with open(text_file, 'r') as g:
+            line_list = []
+            for line in text_file:
+                line_text = g.readline(line)
+                if line_text.find('?') != -1:
+                    index = 0
+                    replace_keys = []
+                    for character in line_text:
+                        if character == '?':
+                            replace_keys.append(index)
+                        index += 1
+                    replace_count = len(replace_keys) / 2
+                    for replacement in range(0, replace_count + 1):
+                        string_beginning = replace_keys[replacement]
+                        string_end = replace_keys[replacement + 1]
+                        replacement_variable_number = int(line_text[string_beginning + 1:string_end])
+                        old_string = line_text[string_beginning:string_end + 1]
+                        replacement_string = str(design_var[replacement_variable_number + 1])
+                        line_text.replace(old_string, replacement_string)
+                line_list.append(line_text)
+            return line_list
+
     import shutil
     import os
     files = os.listdir(common_bem_file_folder)
     for bem_input_file in files:
         file = common_bem_file_folder + '/' + bem_input_file
+        new_file_text = change_case_file(file, design_vars)
         shutil.copy(file, copy_folder)
+        change_file = copy_folder = '/' + bem_input_file
+        with open(change_file, 'w') as f:
+            for new_string in new_file_text:
+                f.write(new_string)
     return
 
 
@@ -90,8 +119,8 @@ for case in range(design_count):
     design_variables = design_data[case, :]
     print(design_variables)
     case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
-    create_case_files(input_file_names['common_file_directory'], case_output_folder)
-    if args.run == True
+    create_case_files(input_file_names['common_file_directory'], case_output_folder, design_variables)
+    if args.run:
         run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
         read_output()
 
