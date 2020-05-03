@@ -11,8 +11,8 @@ parser.add_argument('-i', '--input',
                     help='file path to input.yaml file'
                     )
 parser.add_argument('-r', '--run',
-                    default=True,
-                    type=bool,
+                    action='store_true',
+                    default=False,
                     help='run boundary element method software on created input files'
                     )
 args = parser.parse_args(sys.argv[1:])
@@ -53,24 +53,31 @@ def create_case_files(common_bem_file_folder, copy_folder, design_vars):
     def change_case_file(text_file, design_var):
         with open(text_file, 'r') as g:
             line_list = []
-            for line in text_file:
-                line_text = g.readline(line)
-                if line_text.find('?') != -1:
+            line_number = 0
+            lines_text = g.readlines()
+            for line in lines_text:
+                if line.find('?') != -1:
                     index = 0
                     replace_keys = []
-                    for character in line_text:
+                    for character in line:
                         if character == '?':
                             replace_keys.append(index)
                         index += 1
-                    replace_count = len(replace_keys) / 2
-                    for replacement in range(0, replace_count + 1):
+                    replace_count = int(len(replace_keys) / 2)
+                    for replacement in range(0, replace_count):
                         string_beginning = replace_keys[replacement]
                         string_end = replace_keys[replacement + 1]
-                        replacement_variable_number = int(line_text[string_beginning + 1:string_end])
-                        old_string = line_text[string_beginning:string_end + 1]
-                        replacement_string = str(design_var[replacement_variable_number + 1])
-                        line_text.replace(old_string, replacement_string)
-                line_list.append(line_text)
+                        replacement_variable_number = int(line[string_beginning + 1:string_end])
+                        print(replacement_variable_number)
+                        old_string = line[string_beginning:string_end + 1]
+                        print('old_string')
+                        print(old_string)
+                        replacement_string = str(design_var[replacement_variable_number - 1])
+                        print('replacement_string')
+                        print(replacement_string)
+                        line = line.replace(old_string, replacement_string)
+                line_list.append(line)
+                line_number += 1
             return line_list
 
     import shutil
@@ -80,7 +87,7 @@ def create_case_files(common_bem_file_folder, copy_folder, design_vars):
         file = common_bem_file_folder + '/' + bem_input_file
         new_file_text = change_case_file(file, design_vars)
         shutil.copy(file, copy_folder)
-        change_file = copy_folder = '/' + bem_input_file
+        change_file = copy_folder + '/' + bem_input_file
         with open(change_file, 'w') as f:
             for new_string in new_file_text:
                 f.write(new_string)
@@ -113,6 +120,7 @@ input_file_names = parse_input(args.input)
 cases_file = input_file_names['cases_file']
 design_data = np.genfromtxt(cases_file, delimiter=',')
 design_count = design_data.shape[0]
+case_output_folder = input_file_names['output_directory']
 
 for case in range(design_count):
     print(case)
