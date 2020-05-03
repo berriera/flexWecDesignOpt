@@ -116,21 +116,23 @@ def read_output():
     return
 
 
-input_file_names = parse_input(args.input)
-cases_file = input_file_names['cases_file']
-design_data = np.genfromtxt(cases_file, delimiter=',')
-design_count = design_data.shape[0]
-case_output_folder = input_file_names['output_directory']
+def main():
+    input_file_names = parse_input(args.input)
+    cases_file = input_file_names['cases_file']
+    design_data = np.genfromtxt(cases_file, delimiter=',')
+    design_count = design_data.shape[0]
+    case_output_folder = input_file_names['output_directory']
 
-for case in range(design_count):
-    print(case)
-    design_variables = design_data[case, :]
-    print(design_variables)
-    case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
-    create_case_files(input_file_names['common_file_directory'], case_output_folder, design_variables)
-    if args.run:
-        run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
-        read_output()
+    for case in range(design_count):
+        print(case)
+        design_variables = design_data[case, :]
+        print(design_variables)
+        case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
+        create_case_files(input_file_names['common_file_directory'], case_output_folder, design_variables)
+        if args.run:
+            run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
+            read_output()
 
-# if __name__ == "__main__":
-#    main()
+
+if __name__ == "__main__":
+    main()
