@@ -1,0 +1,5 @@
+device: cylinder
+run_wamit_directory: C:\WAMITv7\wamit
+common_file_directory: C:/WAMITv7/Austin_Berrier/cylinder_input_test
+output_directory: C:/WAMITv7/Austin_Berrier/cylinder_output_test
+cases_file: C:/Users/berriera/PycharmProjects/flexWecDesignOpt/flexWecDesignOpt/examples/cylinder/cylinder_designs.csv

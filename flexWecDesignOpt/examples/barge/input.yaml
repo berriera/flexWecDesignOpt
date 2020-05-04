@@ -1,0 +1,5 @@
+device: barge
+run_wamit_directory: C:\WAMITv7\wamit
+common_file_directory: C:/Users/13365/Desktop/barge
+output_directory: C:/Users/13365/Desktop/auto_bem_test
+cases_file: C:/Users/13365/Documents/GitHub/flexWecDesignOpt/flexWecDesignOpt/examples/barge/barge_designs.csv
