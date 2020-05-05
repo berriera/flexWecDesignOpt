@@ -19,9 +19,13 @@ args = parser.parse_args(sys.argv[1:])
 
 
 def parse_input(input_file_location):
-    """
+    """Opens and reads in specified parameters in the user created .yaml file
 
-    :return:
+    Args:
+        input_file_location (str):
+
+    Returns
+        str
     """
     import yaml
     with open(input_file_location, 'r') as f:
@@ -30,11 +34,14 @@ def parse_input(input_file_location):
 
 
 def create_case_directory(case_number, output_directory):
-    """
+    """Creates a directory to hold each design's input and generated output files.
 
-    :param case_number:
-    :param output_directory:
-    :return:
+    Args:
+        case_number (int):
+        output_directory (str):
+
+    Returns:
+        str
     """
     import os
     path = output_directory + '/case_' + str(case_number)
@@ -43,11 +50,16 @@ def create_case_directory(case_number, output_directory):
 
 
 def create_case_files(common_bem_file_folder, copy_folder, design_vars):
-    """
+    """Copies original input files from their common directory, and changes them in the process using variable
+    substitution.
 
-    :param common_bem_file_folder:
-    :param copy_folder:
-    :return:
+    Args:
+        common_bem_file_folder (str):
+        copy_folder (str):
+        design_vars (one-dimensional array):
+
+    Returns:
+        None
     """
 
     def change_case_file(text_file, design_var):
@@ -96,10 +108,14 @@ def create_case_files(common_bem_file_folder, copy_folder, design_vars):
 
 def run_wamit(output_folder, bem_command):
     """
-    This function runs the boundary element solver WAMIT in the current case directory.
-    :param output_folder:
-    :param bem_command:
-    :return:
+    This function runs the boundary element solver command in the current case directory.
+
+    Args:
+        output_folder(str):
+        bem_command (str):
+
+    Returns:
+        None
     """
     import os
     import subprocess
