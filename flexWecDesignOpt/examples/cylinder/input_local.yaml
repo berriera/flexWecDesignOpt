@@ -1,0 +1,5 @@
+device: cylinder
+run_wamit_directory: C:\WAMITv7\wamit
+common_file_directory: C:/Users/13365/Desktop/cylinder_replacement_test
+output_directory: C:/Users/13365/Desktop/cylinder_output_test
+cases_file: C:/Users/13365/Desktop/cylinder_designs.csv
