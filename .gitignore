@@ -8,6 +8,7 @@ __pycache__/
 *.vtk
 *.stl
 *.gdf
+*.csv
 
 # C extensions
 *.so
