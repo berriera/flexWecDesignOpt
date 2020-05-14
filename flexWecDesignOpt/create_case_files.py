@@ -1,11 +1,11 @@
-def create_case_files(common_bem_file_folder, copy_folder, design_vars):
+def create_case_files(common_file_directory, case_output_folder, substitution_array):
     """Copies original input files from their common directory, and changes them in the process using variable
     substitution.
 
     Args:
-        common_bem_file_folder (str):
-        copy_folder (str):
-        design_vars (one-dimensional array):
+        common_file_directory (str):
+        case_output_folder (str):
+        substitution_array (one-dimensional array):
 
     Returns:
         None
@@ -30,7 +30,7 @@ def create_case_files(common_bem_file_folder, copy_folder, design_vars):
                         string_end = replace_keys[replacement + 1]
                         replacement_variable_number = int(line[string_beginning + 1:string_end])
                         print(replacement_variable_number)
-                        old_string = line[string_beginning:string_end + 1]
+                        old_string = line[string_beginning:string_end + 1] # TODO: figure out why multiple substitutions in a line breaks everything
                         print('old_string')
                         print(old_string)
                         replacement_string = str(design_var[replacement_variable_number - 1])
@@ -43,12 +43,12 @@ def create_case_files(common_bem_file_folder, copy_folder, design_vars):
 
     import shutil
     import os
-    files = os.listdir(common_bem_file_folder)
+    files = os.listdir(common_file_directory)
     for bem_input_file in files:
-        file = common_bem_file_folder + '/' + bem_input_file
-        new_file_text = change_case_file(file, design_vars)
-        shutil.copy(file, copy_folder)
-        change_file = copy_folder + '/' + bem_input_file
+        file = common_file_directory + '/' + bem_input_file
+        new_file_text = change_case_file(file, substitution_array)
+        shutil.copy(file, case_output_folder)
+        change_file = case_output_folder + '/' + bem_input_file
         with open(change_file, 'w') as f:
             for new_string in new_file_text:
                 f.write(new_string)
