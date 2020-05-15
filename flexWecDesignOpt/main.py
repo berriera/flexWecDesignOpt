@@ -1,9 +1,14 @@
 import argparse
 import sys
 import numpy as np
-
-# sys.path.append(os.path.dirname(os.path.realpath(__file__)))
-# import flexWecDesignOpt
+import string
+from parse_input import parse_input
+from create_case_directory import create_case_directory
+from create_case_files import create_case_files
+from run_wamit import run_wamit
+from read_output import read_output
+from create_mesh_file_from_geometry import create_mesh_file_from_geometry
+from device_types import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--input',
@@ -13,124 +18,57 @@ parser.add_argument('-i', '--input',
 parser.add_argument('-r', '--run',
                     action='store_true',
                     default=False,
-                    help='run boundary element method software on created input files'
+                    help='bool: option to run boundary element method command on created input files'
                     )
 args = parser.parse_args(sys.argv[1:])
 
 
-def parse_input(input_file_location):
-    """
+# TODO: add in test mesh refinement argparse option to pop in first design and visualize it in meshmagick,
+#   with keyboard option to keep going, retry with smaller mesh refinement factor, or cancel
 
-    :return:
-    """
-    import yaml
-    with open(input_file_location, 'r') as f:
-        file_names = yaml.safe_load(f)
-    return file_names
+# TODO: add in option to pass in array; if this happens, read it in as a numpy array
 
+def main():
+    # Grabs information from inputted .yaml file
+    input_file_names = parse_input(args.input)
+    device_name = input_file_names['device_name']
+    common_file_directory = input_file_names['common_file_directory']
+    cases_file = input_file_names['cases_file']
+    output_directory = input_file_names['output_directory']
+    bem_command = input_file_names['run_wamit_directory']
+    gmsh_exe_location = input_file_names['gmsh_exe_location']
 
-def create_case_directory(case_number, output_directory):
-    """
+    # Creates array of all design variables from inputted .csv file
+    design_data = np.genfromtxt(cases_file, delimiter=',')
+    design_count = design_data.shape[0]
 
-    :param case_number:
-    :param output_directory:
-    :return:
-    """
-    import os
-    path = output_directory + '/case_' + str(case_number)
-    os.makedirs(path)
-    return path
+    # Finds corresponding class name according to the inputted device name
+    device_type = getattr(sys.modules[__name__], string.capwords(device_name))
 
+    for case in range(design_count):
+        print('Case:', str(case + 1))
+        design_variables = design_data[case, :]
 
-def create_case_files(common_bem_file_folder, copy_folder, design_vars):
-    """
+        # Obtains device class information
+        device = device_type(design_variables)
+        substitution_array = device.substitutions()
+        geometry = device.geometry()
 
-    :param common_bem_file_folder:
-    :param copy_folder:
-    :return:
-    """
+        # Creates case directory then copies and changes boundary element method input files into the directory
+        case_output_folder = create_case_directory(case + 1, output_directory)
+        create_case_files(common_file_directory, case_output_folder, substitution_array)
 
-    def change_case_file(text_file, design_var):
-        with open(text_file, 'r') as g:
-            line_list = []
-            line_number = 0
-            lines_text = g.readlines()
-            for line in lines_text:
-                if line.find('?') != -1:
-                    index = 0
-                    replace_keys = []
-                    for character in line:
-                        if character == '?':
-                            replace_keys.append(index)
-                        index += 1
-                    replace_count = int(len(replace_keys) / 2)
-                    for replacement in range(0, replace_count):
-                        string_beginning = replace_keys[replacement]
-                        string_end = replace_keys[replacement + 1]
-                        replacement_variable_number = int(line[string_beginning + 1:string_end])
-                        print(replacement_variable_number)
-                        old_string = line[string_beginning:string_end + 1]
-                        print('old_string')
-                        print(old_string)
-                        replacement_string = str(design_var[replacement_variable_number - 1])
-                        print('replacement_string')
-                        print(replacement_string)
-                        line = line.replace(old_string, replacement_string)
-                line_list.append(line)
-                line_number += 1
-            return line_list
+        print('\tMeshing...')
+        create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gmsh_exe_location)
 
-    import shutil
-    import os
-    files = os.listdir(common_bem_file_folder)
-    for bem_input_file in files:
-        file = common_bem_file_folder + '/' + bem_input_file
-        new_file_text = change_case_file(file, design_vars)
-        shutil.copy(file, copy_folder)
-        change_file = copy_folder + '/' + bem_input_file
-        with open(change_file, 'w') as f:
-            for new_string in new_file_text:
-                f.write(new_string)
-    return
+        if args.run:
+            print('\tRunning BEM...')
+            run_wamit(case_output_folder, bem_command)
+            read_output()
+        print('\tDone.')
+
+    print('\n\nAll cases completed.')
 
 
-def run_wamit(output_folder, bem_command):
-    """
-    This function runs the boundary element solver WAMIT in the current case directory.
-    :param output_folder:
-    :param bem_command:
-    :return:
-    """
-    import os
-    import subprocess
-    os.chdir(output_folder)
-    subprocess.run([bem_command])
-    return
-
-
-def read_output():
-    """
-
-    :return:
-    """
-    return
-
-
-input_file_names = parse_input(args.input)
-cases_file = input_file_names['cases_file']
-design_data = np.genfromtxt(cases_file, delimiter=',')
-design_count = design_data.shape[0]
-case_output_folder = input_file_names['output_directory']
-
-for case in range(design_count):
-    print(case)
-    design_variables = design_data[case, :]
-    print(design_variables)
-    case_output_folder = create_case_directory(case + 1, input_file_names['output_directory'])
-    create_case_files(input_file_names['common_file_directory'], case_output_folder, design_variables)
-    if args.run:
-        run_wamit(case_output_folder, input_file_names['run_wamit_directory'])
-        read_output()
-
-# if __name__ == "__main__":
-#    main()
+if __name__ == "__main__":
+    main()

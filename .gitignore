@@ -4,6 +4,11 @@ __pycache__/
 *$py.class
 *.xml
 *.iml
+*.geo
+*.vtk
+*.stl
+*.gdf
+*.csv
 
 # C extensions
 *.so
