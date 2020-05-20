@@ -26,13 +26,13 @@ class Cylinder(object):
         self.device_name = 'cylinder'
         self.r = design_vars[0]
         self.h = design_vars[1]
+        self.Cg = 0
         self.kx = ((1 / 12) * (3 * self.r ** 2 + self.h ** 2)) ** (1 / 2)
         self.ky = self.kx
         self.kz = ((1 / 2) * (self.r ** 2)) ** (1 / 2)
-        self.Cg = 0
 
     def substitutions(self):
-        return np.array([self.Cg, self.kx, self.ky, self.kz])
+        return np.array([self.r, self.h, self.Cg, self.kx, self.ky, self.kz])
 
     def geometry(self):
         geometry = pygmsh.opencascade.Geometry()
@@ -52,9 +52,13 @@ class Barge(object):
         self.w = design_vars[1]
         self.h = design_vars[2]
         self.Cg = 0
+        self.kx = ((1 / 12) * (self.L ** 2 + self.h ** 2)) ** (1/2)
+        self.ky = ((1 / 12) * (self.w ** 2 + self.h ** 2)) ** (1 / 2)
+        self.kz = ((1 / 12) * (self.L ** 2 + self.w ** 2)) ** (1 / 2)
 
     def substitutions(self):
-        return
+        return {'L': self.L, 'w': self.w, 'h': self.h, 'Cg': self.Cg,
+                'kx': self.kx, 'ky': self.ky, 'kz': self.kz}
 
     def geometry(self):
         geometry = pygmsh.opencascade.Geometry()
