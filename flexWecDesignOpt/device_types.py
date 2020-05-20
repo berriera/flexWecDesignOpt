@@ -60,6 +60,7 @@ class Barge(object):
         geometry = pygmsh.opencascade.Geometry()
         geometry.add_box(x0=[-1 / 2 * self.L, -1 / 2 * self.w, -1 / 2 * self.h],
                          extents=[self.L, self.w, self.h])
+        return geometry
 
 
 class RM3(object):
