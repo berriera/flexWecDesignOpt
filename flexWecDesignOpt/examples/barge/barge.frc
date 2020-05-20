@@ -1,0 +1,8 @@
+BARGE DESIGN FILE: L = ?L?, w = ?w?, h = ?h?
+1 2 2 1 0 0 0 0 0       IOPTN
+?Cg? VCG
+?kx? 	  0.000000 0.000000
+0.000000 ?ky? 	   0.000000
+0.000000 0.000000  ?kz?      XPRDCT
+0           NBETAH
+0           NFIELD
