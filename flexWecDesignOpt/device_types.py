@@ -44,7 +44,7 @@ class Cylinder(object):
         return geometry
 
 
-class Barge(object):
+class BargeHighOrderMesh(object):
 
     def __init__(self, design_vars):
         self.device_name = 'barge'
@@ -58,6 +58,28 @@ class Barge(object):
 
     def substitutions(self):
         return {'L': self.L, 'w': self.w, 'h': self.h, 'Cg': self.Cg,
+                'L_half': self.L / 2, 'w_half': self.w / 2, 'h_half': self.h / 2,
+                'kx': self.kx, 'ky': self.ky, 'kz': self.kz}
+
+    def geometry(self):
+        return None
+
+
+class BargeLowOrderMesh(object):
+
+    def __init__(self, design_vars):
+        self.device_name = 'barge'
+        self.L = design_vars[0]
+        self.w = design_vars[1]
+        self.h = design_vars[2]
+
+        self.Cg = 0
+        self.kx = ((1 / 12) * (self.L ** 2 + self.h ** 2)) ** (1 / 2)
+        self.ky = ((1 / 12) * (self.w ** 2 + self.h ** 2)) ** (1 / 2)
+        self.kz = ((1 / 12) * (self.L ** 2 + self.w ** 2)) ** (1 / 2)
+
+    def substitutions(self):
+        return {'L': self.L, 'w': self.w, 'h': self.h, 'Cg': self.Cg,
                 'kx': self.kx, 'ky': self.ky, 'kz': self.kz}
 
     def geometry(self):
@@ -65,6 +87,7 @@ class Barge(object):
         geometry.add_box(x0=[-1 / 2 * self.L, -1 / 2 * self.w, -1 / 2 * self.h],
                          extents=[self.L, self.w, self.h])
         return geometry
+
 
 
 class RM3(object):
