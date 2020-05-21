@@ -1,4 +1,5 @@
-def create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gmsh_exe_location):
+def create_mesh_file_from_geometry(geometry, device_name, case_output_folder,
+                                   gmsh_exe_location, mesh_refinement_factor=0.5):
     import os
     import pygmsh
     import meshmagick.mesh_clipper
@@ -6,7 +7,6 @@ def create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gm
     import meshmagick.mesh
 
     os.chdir(case_output_folder)
-    mesh_refinement_factor = 0.25
 
     meshing_arguments = ['-clscale', str(mesh_refinement_factor),  # set mesh element size factor
                '-clcurv', str(360 / 50),  # computes mesh element size from curvature

@@ -34,8 +34,9 @@ def main():
     common_file_directory = input_file_names['common_file_directory']
     cases_file = input_file_names['cases_file']
     output_directory = input_file_names['output_directory']
-    bem_command = input_file_names['run_wamit_directory']
+    bem_command = input_file_names['run_wamit_command']
     gmsh_exe_location = input_file_names['gmsh_exe_location']
+    mesh_refinement_factor = float(input_file_names['mesh_refinement_factor'])
 
     # Creates array of all design variables from inputted .csv file
     design_data = np.genfromtxt(cases_file, delimiter=',')
@@ -59,7 +60,8 @@ def main():
 
         if geometry is not None:  # TODO: make meshing optional, i.e. using WAMIT's built-in meshing tools
             print('\tMeshing...')
-            create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gmsh_exe_location)
+            create_mesh_file_from_geometry(geometry, device_name, case_output_folder,
+                                           gmsh_exe_location, mesh_refinement_factor)
 
         if args.run:
             print('\tRunning BEM...')
