@@ -1,4 +1,4 @@
-device_name: cylinder
+device_name: Cylinder
 run_wamit_directory: C:\WAMITv7\wamit
 common_file_directory: C:/WAMITv7/Austin_Berrier/cylinder_input_test
 output_directory: C:/WAMITv7/Austin_Berrier/cylinder_output_test
