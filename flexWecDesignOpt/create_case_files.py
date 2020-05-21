@@ -49,13 +49,16 @@ def create_case_files(common_file_directory, case_output_folder, substitution_ar
 
     import shutil
     import os
+    extension_do_not_copy_list = ['.yaml', 'csv']
     files = os.listdir(common_file_directory)
     for bem_input_file in files:
-        file = common_file_directory + '/' + bem_input_file  # TODO: exclude .csv files
-        new_file_text = change_case_file(file, substitution_array)
-        shutil.copy(file, case_output_folder)
-        change_file = case_output_folder + '/' + bem_input_file  # TODO: join these strings in a non-Windows specific way
-        with open(change_file, 'w') as f:
-            for new_string in new_file_text:
-                f.write(new_string)
+        file = common_file_directory + '/' + bem_input_file
+        extension = os.path.splitext(file)[1]  # TODO: check that excluding .csv and .yaml files works
+        if extension not in extension_do_not_copy_list:
+            new_file_text = change_case_file(file, substitution_array)
+            shutil.copy(file, case_output_folder)
+            change_file = case_output_folder + '/' + bem_input_file  # TODO: join these strings in a non-Windows specific way
+            with open(change_file, 'w') as f:
+                for new_string in new_file_text:
+                    f.write(new_string)
     return
