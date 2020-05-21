@@ -1,7 +1,6 @@
 import argparse
 import sys
 import numpy as np
-import string
 from parse_input import parse_input
 from create_case_directory import create_case_directory
 from create_case_files import create_case_files
@@ -31,7 +30,7 @@ args = parser.parse_args(sys.argv[1:])
 def main():
     # Grabs information from inputted .yaml file
     input_file_names = parse_input(args.input)
-    device_name = input_file_names['device_name']
+    device_name = input_file_names['device_name']  # TODO: check for empty dictionary names
     common_file_directory = input_file_names['common_file_directory']
     cases_file = input_file_names['cases_file']
     output_directory = input_file_names['output_directory']
@@ -43,7 +42,7 @@ def main():
     design_count = design_data.shape[0]
 
     # Finds corresponding class name according to the inputted device name
-    device_type = getattr(sys.modules[__name__], string.capwords(device_name))
+    device_type = getattr(sys.modules[__name__], device_name)
 
     for case in range(design_count):
         print('Case:', str(case + 1))
@@ -58,8 +57,9 @@ def main():
         case_output_folder = create_case_directory(case + 1, output_directory)
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
-        print('\tMeshing...')
-        create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gmsh_exe_location)
+        if geometry is not None:  # TODO: make meshing optional, i.e. using WAMIT's built-in meshing tools
+            print('\tMeshing...')
+            create_mesh_file_from_geometry(geometry, device_name, case_output_folder, gmsh_exe_location)
 
         if args.run:
             print('\tRunning BEM...')
