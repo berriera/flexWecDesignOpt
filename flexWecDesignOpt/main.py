@@ -15,6 +15,11 @@ parser.add_argument('-i', '--input',
                     required=True,
                     help='file path to input.yaml file'
                     )
+parser.add_argument('-m', '--mesh',
+                    action='store_true',
+                    default=False,
+                    help='bool: option to use pygmsh and GMSH to parameterize mesh'
+                    )
 parser.add_argument('-r', '--run',
                     action='store_true',
                     default=False,
@@ -34,12 +39,23 @@ def main():
     device_name = input_file_names['device_name']  # TODO: check for empty dictionary names
     common_file_directory = os.path.abspath(input_file_names['common_file_directory'])
     cases_file = os.path.abspath(input_file_names['cases_file'])
-    output_directory = os.path.abspath(input_file_names['output_directory']) # TODO: create output directory if it doesn't exist
-    bem_command = input_file_names['run_wamit_command']
-    gmsh_exe_location = os.path.abspath(input_file_names['gmsh_exe_location'])
-    print(gmsh_exe_location)
-    mesh_refinement_factor = float(input_file_names['mesh_refinement_factor'])
+    output_directory = os.path.abspath(input_file_names['output_directory'])
+    # TODO: create output directory if it doesn't exist
+    if args.run:
+        try:
+            bem_command = input_file_names['run_wamit_command']
+        except KeyError:
+            print("Boundary element command not included in input file")
 
+    if args.mesh:
+        try:
+            gmsh_exe_location = os.path.abspath(input_file_names['gmsh_exe_location'])
+        except KeyError:
+            print("Check find GMSH executable file for meshing.")
+        try:
+            mesh_refinement_factor = float(input_file_names['mesh_refinement_factor'])
+        except KeyError:
+            print("Cannot find given mesh refinement factor. Using a default of 0.50.")
 
     # Creates array of all design variables from inputted .csv file
     design_data = np.genfromtxt(cases_file, delimiter=',')
@@ -61,14 +77,19 @@ def main():
         case_output_folder = create_case_directory(case + 1, output_directory)
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
-        if geometry is not None:
-            print('\tMeshing...') # TODO: make sure that optional meshing works
+        if args.mesh:
+            print('\tMeshing...')  # TODO: make sure that optional meshing works
             create_mesh_file_from_geometry(geometry, device_name, case_output_folder,
                                            gmsh_exe_location, mesh_refinement_factor)
 
         if args.run:
             print('\tRunning BEM...')
-            run_wamit(case_output_folder, bem_command)
+            try:
+                run_wamit(case_output_folder, bem_command)
+            except UnboundLocalError:
+                print('Cannot find boundary element model command in input file.')
+            except FileNotFoundError:
+                print('Cannot run given boundary element model command.')
             read_output()
         print('\tDone.')
 
