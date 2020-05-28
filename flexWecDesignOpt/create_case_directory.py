@@ -9,6 +9,6 @@ def create_case_directory(case_number, output_directory):
         str
     """
     import os
-    path = output_directory + '/case_' + str(case_number)
+    path = os.path.join(output_directory, 'case_' + str(case_number))
     os.makedirs(path)
     return path
