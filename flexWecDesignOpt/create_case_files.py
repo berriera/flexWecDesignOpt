@@ -1,4 +1,17 @@
 def substitute_variables_in_line(line_text, variables, file_name='', line_number=1):  # TODO: documentation
+    """Alters a single line in a text file with included ?var? statements
+
+    Args:
+        line_text (str): A single line in a text file to be altered
+        variables (one-dimensional array or dict): Design variable array or dict of variable substitutions
+        file_name (str): Name of the file. Used for error handling to point user to substitution mistake
+        line_number (int): Line number of file_name. Used for error handling to point user to variable substitution
+                            mistake
+
+    Returns:
+        line_text (str) : The substituted line text for the file
+
+    """
     import numpy as np
 
     while line_text.find('?') != -1:
@@ -9,7 +22,7 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
         string_substitution = line_text[substitution_indices[0]:substitution_indices[1] + 1]
         if variables is None:
             return
-        elif isinstance(variables, np.ndarray):
+        elif isinstance(variables, np.ndarray): # TODO: enforce try else statements here for checking if var is in dict or if array is out of bounds
             replacement_variable_number = int(line_text[substitution_indices[0] + 1: substitution_indices[1]])
             replacement_string = str(variables[replacement_variable_number - 1])
         elif isinstance(variables, dict):
@@ -21,7 +34,16 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
     return line_text
 
 
-def change_case_file(text_file, design_var):  # TODO: documentation
+def change_case_file(text_file, design_var):
+    """Alters a single input file in a directory
+
+    Args:
+        text_file (str): Name of the text file to be read and potentially altered
+        design_var (one-dimensional array or dict): Design variable array or dict of variable substitutions
+
+    Returns:
+        line_list (str list): list of altered lines
+    """
     with open(text_file, 'r') as g:
         line_list = []
         line_number = 0
@@ -39,9 +61,9 @@ def create_case_files(common_file_directory, case_output_folder, substitution_ar
     substitution.
 
     Args:
-        common_file_directory (str):
-        case_output_folder (str):
-        substitution_array (one-dimensional array):
+        common_file_directory (str): Input file folder location
+        case_output_folder (str): Output file folder location
+        substitution_array (one-dimensional array or dict): Design variable array or dict of variable substitutions
 
     Returns:
         None
@@ -49,15 +71,15 @@ def create_case_files(common_file_directory, case_output_folder, substitution_ar
 
     import shutil
     import os
-    extension_do_not_copy_list = ['.yaml', 'csv']
+    extension_do_not_copy_list = ['.yaml', 'csv', '.py']
     files = os.listdir(common_file_directory)
     for bem_input_file in files:
-        file = common_file_directory + '/' + bem_input_file
-        extension = os.path.splitext(file)[1]  # TODO: check that excluding .csv and .yaml files works
+        file = os.path.join(common_file_directory, bem_input_file)
+        extension = os.path.splitext(file)[1]
         if extension not in extension_do_not_copy_list:
             new_file_text = change_case_file(file, substitution_array)
             shutil.copy(file, case_output_folder)
-            change_file = case_output_folder + '/' + bem_input_file  # TODO: join these strings in a non-Windows specific way
+            change_file = os.path.join(case_output_folder, bem_input_file)
             with open(change_file, 'w') as f:
                 for new_string in new_file_text:
                     f.write(new_string)
