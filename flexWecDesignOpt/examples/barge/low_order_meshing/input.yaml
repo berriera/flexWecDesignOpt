@@ -1,7 +1,7 @@
 device_name: BargeLowOrderMesh
-run_wamit_directory: C:\WAMITv7\wamit
-common_file_directory: C:/Users/13365/Documents/GitHub/flexWecDesignOpt/flexWecDesignOpt/examples/barge/low_order_meshing
-output_directory: C:/Users/13365/Desktop/barge_output_test
-cases_file: C:/Users/13365/Documents/GitHub/flexWecDesignOpt/flexWecDesignOpt/examples/barge_array.csv
+run_wamit_command: C:\WAMITv7\wamit
+common_file_directory: examples/barge/low_order_meshing/input
+output_directory: examples/barge/low_order_meshing/input
+cases_file: examples/barge/barge_designs.csv
 gmsh_exe_location: C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh
-mesh_refinement: 0.25
+mesh_refinement_factor: 0.75
