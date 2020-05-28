@@ -1,5 +1,6 @@
 import argparse
 import sys
+import os
 import numpy as np
 from parse_input import parse_input
 from create_case_directory import create_case_directory
@@ -31,12 +32,14 @@ def main():
     # Grabs information from inputted .yaml file
     input_file_names = parse_input(args.input)
     device_name = input_file_names['device_name']  # TODO: check for empty dictionary names
-    common_file_directory = input_file_names['common_file_directory']
-    cases_file = input_file_names['cases_file']
-    output_directory = input_file_names['output_directory']
+    common_file_directory = os.path.abspath(input_file_names['common_file_directory'])
+    cases_file = os.path.abspath(input_file_names['cases_file'])
+    output_directory = os.path.abspath(input_file_names['output_directory']) # TODO: create output directory if it doesn't exist
     bem_command = input_file_names['run_wamit_command']
-    gmsh_exe_location = input_file_names['gmsh_exe_location']
+    gmsh_exe_location = os.path.abspath(input_file_names['gmsh_exe_location'])
+    print(gmsh_exe_location)
     mesh_refinement_factor = float(input_file_names['mesh_refinement_factor'])
+
 
     # Creates array of all design variables from inputted .csv file
     design_data = np.genfromtxt(cases_file, delimiter=',')
@@ -58,8 +61,8 @@ def main():
         case_output_folder = create_case_directory(case + 1, output_directory)
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
-        if geometry is not None:  # TODO: make meshing optional, i.e. using WAMIT's built-in meshing tools
-            print('\tMeshing...')
+        if geometry is not None:
+            print('\tMeshing...') # TODO: make sure that optional meshing works
             create_mesh_file_from_geometry(geometry, device_name, case_output_folder,
                                            gmsh_exe_location, mesh_refinement_factor)
 
