@@ -1,13 +1,13 @@
 import argparse
 import sys
 import os
-import numpy as np
-from parse_input import parse_input
-from create_case_directory import create_case_directory
-from create_case_files import create_case_files
-from run_wamit import run_wamit
-from read_output import read_output
-from create_mesh_file_from_geometry import create_mesh_file_from_geometry
+from file_mgmt import parse_input
+from file_mgmt import create_case_directory
+from substitution import create_case_files
+from analysis import run_wamit
+from output import read_output
+from mesh import create_mesh_file
+from mesh import submerged_mesh
 from device_types import *
 
 parser = argparse.ArgumentParser()
@@ -31,12 +31,11 @@ args = parser.parse_args(sys.argv[1:])
 # TODO: add in test mesh refinement argparse option to pop in first design and visualize it in meshmagick,
 #   with keyboard option to keep going, retry with smaller mesh refinement factor, or cancel
 
-# TODO: add in option to pass in array; if this happens, read it in as a numpy array
 
 def main():
     # Grabs information from inputted .yaml file
     input_file_names = parse_input(args.input)
-    device_name = input_file_names['device_name']  # TODO: check for empty dictionary names
+    device_name = input_file_names['device_name']
     common_file_directory = os.path.abspath(input_file_names['common_file_directory'])
     cases_file = os.path.abspath(input_file_names['cases_file'])
     output_directory = os.path.abspath(input_file_names['output_directory'])
@@ -78,18 +77,19 @@ def main():
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
         if args.mesh:
-            print('\tMeshing...')  # TODO: make sure that optional meshing works
-            create_mesh_file_from_geometry(geometry, device_name, case_output_folder,
+            print('\tMeshing...')
+            create_mesh_file(geometry, device_name, case_output_folder,
                                            gmsh_exe_location, mesh_refinement_factor)
+            submerged_mesh(device_name)
 
         if args.run:
             print('\tRunning BEM...')
             try:
                 run_wamit(case_output_folder, bem_command)
             except UnboundLocalError:
-                print('Cannot find boundary element model command in input file.')
+                print('\tCannot find boundary element model command in input file.')
             except FileNotFoundError:
-                print('Cannot run given boundary element model command.')
+                print('\tCannot run given boundary element model command.')
             read_output()
         print('\tDone.')
 
