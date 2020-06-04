@@ -13,24 +13,36 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
 
     """
     import numpy as np
-
+    error_list = []  # TODO: only repeat key error once (fix error_list var to keep appending to existing error_list
     while line_text.find('?') != -1:
         substitution_indices = [position for position, character in enumerate(line_text) if character == '?']
         if len(substitution_indices) % 2 != 0.0:
-            raise ValueError("Check line number" + str(line_number) + "in file" + file_name +
-                             "for proper substitution formatting")
+            raise ValueError("Check line number " + str(line_number) + " in file  " + file_name +
+                             " for proper substitution formatting")
         string_substitution = line_text[substitution_indices[0]:substitution_indices[1] + 1]
         if variables is None:
             return
-        elif isinstance(variables, np.ndarray): # TODO: enforce try else statements here for checking if var is in dict or if array is out of bounds
+        elif isinstance(variables, np.ndarray):
+            # TODO: enforce try else statements here for checking if var is in dict or if array is out of bounds
             replacement_variable_number = int(line_text[substitution_indices[0] + 1: substitution_indices[1]])
             replacement_string = str(variables[replacement_variable_number - 1])
         elif isinstance(variables, dict):
-            replacement_variable_key = line_text[substitution_indices[0] + 1: substitution_indices[1]]
-            replacement_string = str(variables[replacement_variable_key])
+            try:
+                replacement_variable_key = line_text[substitution_indices[0] + 1: substitution_indices[1]]
+                replacement_string = str(variables[replacement_variable_key])
+            except KeyError:
+                error_message = "\tError: Check substitution method for missing key " + replacement_variable_key + \
+                                ".\n\tIt is found on line number " + str(line_number) + " in input file " + file_name
+                if error_message not in error_list:
+                    error_list.append(error_message)
+                    print(error_message)
         else:
             raise TypeError("Returned object type of device substitution should be an array or a dictionary.")
-        line_text = line_text.replace(string_substitution, replacement_string)
+        try:
+            line_text = line_text.replace(string_substitution, replacement_string)
+        except UnboundLocalError:
+            print("Could not replace variable. Check input file for corrections.")
+            break
     return line_text
 
 
@@ -46,11 +58,11 @@ def change_case_file(text_file, design_var):
     """
     with open(text_file, 'r') as g:
         line_list = []
-        line_number = 0
+        line_number = 1
         lines_text = g.readlines()
         for line in lines_text:
             if line.find('?') != -1:
-                line = substitute_variables_in_line(line, design_var)
+                line = substitute_variables_in_line(line, design_var, text_file, line_number)
             line_list.append(line)
             line_number += 1
         return line_list
