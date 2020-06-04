@@ -19,6 +19,7 @@ def create_case_directory(output_directory='', case_number=1):
         print('\tCase output folder already exists. Renaming to case_' + str(case_number))
         directory_path = os.path.join(output_directory, 'case_' + str(case_number))
         os.makedirs(directory_path)
+    os.chdir(directory_path)
     return directory_path
 
 

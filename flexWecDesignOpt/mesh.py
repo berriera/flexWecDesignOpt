@@ -1,9 +1,5 @@
-def create_mesh_file(geometry, device_name, case_output_folder,
-                     gmsh_exe_location, mesh_refinement_factor=0.5):
-    import os
-    import pygmsh
-
-    os.chdir(case_output_folder)
+def create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_factor=0.5):
+    import pygmsh  # TODO: documentation
 
     meshing_arguments = ['-clscale', str(mesh_refinement_factor),  # set mesh element size factor
                          '-clcurv', str(360 / 50),  # computes mesh element size from curvature
@@ -28,8 +24,10 @@ def submerged_mesh(device_name):
     import meshmagick.mmio
     import meshmagick.mesh
     vertices, faces = meshmagick.mmio.load_STL(device_name + '.stl')
-    mesh_all = meshmagick.mesh.Mesh(vertices, faces) # TODO: healnormals function on mesh
+    mesh_all = meshmagick.mesh.Mesh(vertices, faces)  # TODO: healnormals function on mesh
     mesh_clip_object = meshmagick.mesh_clipper.MeshClipper(source_mesh=mesh_all)
     mesh_clipped_below_waterline = mesh_clip_object.clipped_mesh
     meshmagick.mmio.write_GDF(device_name + '.gdf', mesh_clipped_below_waterline.vertices,
                               mesh_clipped_below_waterline.faces)
+    # TODO: user specified mesh symmetry arguments for quicker write and meshing times,
+    #  need to change meshmagick for this

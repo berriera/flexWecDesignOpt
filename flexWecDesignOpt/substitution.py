@@ -68,7 +68,7 @@ def change_case_file(text_file, design_var):
         return line_list
 
 
-def create_case_files(common_file_directory, case_output_folder, substitution_array):
+def create_case_files(common_file_directory, substitution_array):
     """Copies original input files from their common directory, and changes them in the process using variable
     substitution.
 
@@ -90,8 +90,8 @@ def create_case_files(common_file_directory, case_output_folder, substitution_ar
         extension = os.path.splitext(file)[1]
         if extension not in extension_do_not_copy_list:
             new_file_text = change_case_file(file, substitution_array)
-            shutil.copy(file, case_output_folder)
-            change_file = os.path.join(case_output_folder, bem_input_file)
+            shutil.copy(file, os.getcwd())
+            change_file = os.path.join(os.getcwd(), bem_input_file)
             with open(change_file, 'w') as f:
                 for new_string in new_file_text:
                     f.write(new_string)

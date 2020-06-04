@@ -3,7 +3,6 @@ import sys
 import os
 from file_mgmt import parse_input
 from file_mgmt import create_case_directory
-from file_mgmt import current_case_directory
 from substitution import create_case_files
 from analysis import run_wamit
 from output import read_output
@@ -49,8 +48,9 @@ def main():
 
     if args.mesh:
         try:
-            gmsh_exe_location = os.path.abspath(input_file_names['gmsh_exe_location'])
+            gmsh_exe_location = input_file_names['gmsh_exe_location']
             if gmsh_exe_location[-4:] == 'gmsh':
+                gmsh_exe_location = os.path.abspath(gmsh_exe_location)
                 gmsh_exe_bool = True
             else:
                 print("GMSH .exe file name is incorrect. Please fix this in the input file.")
@@ -80,14 +80,12 @@ def main():
 
         # Creates case directory then copies and changes boundary element method input files into the directory
         case_output_folder = create_case_directory(output_directory, case + 1)
-        # case_output_folder = current_case_directory()
-        create_case_files(common_file_directory, case_output_folder, substitution_array)
+        create_case_files(common_file_directory, substitution_array)
 
         if args.mesh and gmsh_exe_bool is True:
             print('\tMeshing...')
             try:
-                create_mesh_file(geometry, device_name, case_output_folder,
-                                 gmsh_exe_location, mesh_refinement_factor)
+                create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
                 submerged_mesh(device_name)
             except:
                 print("\tFailed to mesh.")
@@ -95,7 +93,7 @@ def main():
         if args.run:
             print('\tRunning BEM...')
             try:
-                run_wamit(case_output_folder, bem_command)
+                run_wamit(bem_command)
             except UnboundLocalError:
                 print('\tCannot find boundary element model command in input file.')
             except FileNotFoundError:
