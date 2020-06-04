@@ -3,6 +3,7 @@ import sys
 import os
 from file_mgmt import parse_input
 from file_mgmt import create_case_directory
+from file_mgmt import current_case_directory
 from substitution import create_case_files
 from analysis import run_wamit
 from output import read_output
@@ -73,7 +74,8 @@ def main():
         geometry = device.geometry()
 
         # Creates case directory then copies and changes boundary element method input files into the directory
-        case_output_folder = create_case_directory(case + 1, output_directory)
+        case_output_folder = create_case_directory(output_directory, case + 1)
+        # case_output_folder = current_case_directory()
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
         if args.mesh:
