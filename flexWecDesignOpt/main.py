@@ -45,13 +45,18 @@ def main():
         try:
             bem_command = input_file_names['run_wamit_command']
         except KeyError:
-            print("Boundary element command not included in input file")
+            print("Boundary element command not included in input file. Will not be able to run analysis")
 
     if args.mesh:
         try:
             gmsh_exe_location = os.path.abspath(input_file_names['gmsh_exe_location'])
+            if gmsh_exe_location[-4:] == 'gmsh':
+                gmsh_exe_bool = True
+            else:
+                print("GMSH .exe file name is incorrect. Please fix this in the input file.")
+                gmsh_exe_bool = False
         except KeyError:
-            print("Check find GMSH executable file for meshing.")
+            print("Cannot find GMSH executable file location for meshing. Unable to create device meshes.")
         try:
             mesh_refinement_factor = float(input_file_names['mesh_refinement_factor'])
         except KeyError:
@@ -78,11 +83,14 @@ def main():
         # case_output_folder = current_case_directory()
         create_case_files(common_file_directory, case_output_folder, substitution_array)
 
-        if args.mesh:
+        if args.mesh and gmsh_exe_bool is True:
             print('\tMeshing...')
-            create_mesh_file(geometry, device_name, case_output_folder,
-                                           gmsh_exe_location, mesh_refinement_factor)
-            submerged_mesh(device_name)
+            try:
+                create_mesh_file(geometry, device_name, case_output_folder,
+                                 gmsh_exe_location, mesh_refinement_factor)
+                submerged_mesh(device_name)
+            except:
+                print("\tFailed to mesh.")
 
         if args.run:
             print('\tRunning BEM...')
