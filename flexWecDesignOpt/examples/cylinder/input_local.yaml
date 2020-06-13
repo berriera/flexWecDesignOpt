@@ -1,7 +1,0 @@
-device_name: Cylinder
-run_wamit_directory: C:\WAMITv7\wamit
-common_file_directory: C:/Users/13365/Desktop/cylinder_replacement_test
-output_directory: C:/Users/13365/Desktop/cylinder_output_test
-cases_file: C:/Users/13365/Documents/GitHub/flexWecDesignOpt/flexWecDesignOpt/examples/cylinder_array.csv
-gmsh_exe_location: C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh
-mesh_refinement: 0.25
