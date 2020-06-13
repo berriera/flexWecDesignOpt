@@ -1,7 +1,7 @@
-device_name: Cylinder
+device_name: FlexibleBarge
 run_wamit_command: C:\WAMITv7\wamit
-common_file_directory: examples/cylinder
+common_file_directory: examples/barge/pygmsh_meshing
 output_directory: examples/output
 cases_file: examples/barge/barge_designs.csv
 gmsh_exe_location: C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh
-mesh_refinement_factor: 0.50
+mesh_refinement_factor: 0.25

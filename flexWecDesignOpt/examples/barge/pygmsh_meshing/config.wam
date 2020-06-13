@@ -1,0 +1,6 @@
+Elastic barge - lower order meshing
+RAMGBMAX = 1
+NCPU = 1
+USERID_PATH = C:\wamitv7
+LICENSE_PATH = C:\WAMITv7\license
+ILOG = 1

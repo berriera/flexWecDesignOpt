@@ -1,0 +1,5 @@
+device_name: BargeWamitMesh
+run_wamit_command: C:\WAMITv7\wamit
+common_file_directory: examples/barge/WAMIT_meshing
+output_directory: examples/output
+cases_file: examples/barge/barge_designs.csv
