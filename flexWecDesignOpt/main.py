@@ -79,11 +79,10 @@ def main():
         geometry = device.geometry()
 
         # Creates case directory then copies and changes boundary element method input files into the directory
-        case_output_folder = create_case_directory(output_directory, case + 1)
+        create_case_directory(output_directory, case + 1)
         create_case_files(common_file_directory, substitution_array)
 
         if args.mesh and gmsh_exe_bool is True:
-            print('\tMeshing...')
             try:
                 create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
                 submerged_mesh(device_name)
@@ -91,7 +90,6 @@ def main():
                 print("\tFailed to mesh.")
 
         if args.run:
-            print('\tRunning BEM...')
             try:
                 run_wamit(bem_command)
             except UnboundLocalError:
