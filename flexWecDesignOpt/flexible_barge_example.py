@@ -17,6 +17,11 @@ run_wamit_command = 'C:\WAMITv7\wamit'
 common_file_directory = os.path.abspath(os.path.join('examples', 'barge', 'pygmsh_meshing'))
 output_directory = os.path.abspath(os.path.join('examples', 'output'))
 
+# Optional meshing arguments and WAMIT command
+gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
+mesh_refinement_factor = 0.40
+run_wamit_command = 'C:\WAMITv7\wamit'
+
 # File path to absolute location
 common_file_directory = os.path.abspath(common_file_directory)
 output_directory = os.path.abspath(output_directory)
@@ -99,4 +104,7 @@ for i in range(N):
     barge_geometry = barge.geometry()
     create_case_directory(output_directory, i + 1)
     create_case_files(common_file_directory, barge_substitutions)
+    # create_mesh_file(barge_geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
+    # submerged_mesh(device_name)
+    # run_wamit(run_wamit_command)
 print('Done.')
