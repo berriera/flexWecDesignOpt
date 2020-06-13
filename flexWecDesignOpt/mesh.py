@@ -1,5 +1,20 @@
 def create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_factor=0.5):
-    import pygmsh  # TODO: documentation
+    """This function creates the initial mesh file in .stl format using the software GMSH
+
+    Args:
+        geometry (geometry object): generated from the device.geometry class from a set of design variables
+        device_name (str): name of the device
+        gmsh_exe_location (str): file location of the installed GMSH software (should end in 'gmsh')
+        mesh_refinement_factor (float): specifies how refined the generated mesh is. Lower means more refined.
+                                            Default is 0.5
+
+    Returns:
+        None
+
+    """
+    import pygmsh
+
+    print('\tMeshing...')
 
     meshing_arguments = ['-clscale', str(mesh_refinement_factor),  # set mesh element size factor
                          '-clcurv', str(360 / 50),  # computes mesh element size from curvature
@@ -19,7 +34,16 @@ def create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_f
 
 
 def submerged_mesh(device_name):
-    # Clip the .stl mesh below the waterline then write the new .gdf mesh file
+    """This function clips the .stl mesh below the waterline then writes the new .gdf mesh file to the current
+    output folder.
+
+    Args:
+        device_name (str): name of the device
+
+    Returns:
+        None
+
+    """
     import meshmagick.mesh_clipper
     import meshmagick.mmio
     import meshmagick.mesh
