@@ -1,4 +1,6 @@
 # flexWecDesignOpt
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3893254.svg)](https://doi.org/10.5281/zenodo.3893254)
+
 Automates WAMIT response analysis for use with wave energy converter structural design optimization
 
 flexWecDesignOpt is a Python 3 package designed to automate hydrodynamic design analysis using the boundary element 
