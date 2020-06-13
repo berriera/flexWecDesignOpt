@@ -3,13 +3,11 @@ Automates WAMIT response analysis for use with wave energy converter structural 
 
 flexWecDesignOpt is a Python 3 package designed to automate hydrodynamic design analysis using the boundary element 
 solver [WAMIT](http://wamit.com/). The package automates creating run configuration input files, writing .gdf file 
-format mesh files, and running the solver, and file management for everything.
+format mesh files, running WAMIT, and managing file structures to hold everything.
 
 Usage requires creating a specifically formatted set of common input files and defining a custom class to define 
-your design from a set of design parameters that can completely quantify your device.
-
-This device class is relatively quick to write for simple geometries, and is responsible for geometry creation and 
-clarifying how to change the set of common input file values based off of the design parameters.
+your design from a set of design parameters that can completely quantify your device. This device class is relatively 
+quick to write for simple geometries, and is responsible for geometry creation and clarifying how to change the set of common input file values based off of the design parameters.
 
 ## Installation
 flexWecDesignOpt can be installed with
@@ -96,19 +94,37 @@ class FlexibleBarge(object):
         self.kx = ((1 / 12) * (self.L ** 2 + self.h ** 2)) ** (1 / 2)
         self.ky = ((1 / 12) * (self.w ** 2 + self.h ** 2)) ** (1 / 2)
         self.kz = ((1 / 12) * (self.L ** 2 + self.w ** 2)) ** (1 / 2)
+        self.Cg = 0
         self.mass = self.rho * self.L * self.w * self.h
 
     def substitutions(self):
         # This method returns a dictionary that relates how text file substitutions correspond to device quantities
         return {'L': self.L, 'w': self.w, 'h': self.h, 
-                'mass': self.mass, 'kx': self.kx, 'ky': self.ky, 'kz': self.kz
+                'mass': self.mass, 'Cg': self.Cg, 
+                'kx': self.kx, 'ky': self.ky, 'kz': self.kz
                 }
 
     def geometry(self):
-        # This method specifies how the device geometry relates to given input variables. For example, the barge is created
-        # as a box with dimensions L, w, and h centered at the origin
+        # This method specifies how the device geometry relates to given input variables. For example, the barge is 
+        # created as a box with dimensions L, w, and h centered at the origin
         geometry = pygmsh.opencascade.Geometry()
         geometry.add_box(x0=[-1 / 2 * self.L, -1 / 2 * self.w, -1 / 2 * self.h],
                          extents=[self.L, self.w, self.h])
         return geometry
+```
+
+### Creating generic input files for WAMIT
+Input files should be made in the typical format for WAMIT in a common folder, with all constant variables specified as
+is. All variables to be altered using the `device.substition()` method are labeled using the formatting 
+`?dictionary_variable_name?` to specify the appropriate variable to plug in. A simple example for writing a .frc file
+using this method and the above `FlexibleBarge` class example is
+```text
+BARGE DESIGN FILE: L = ?L?, w = ?w?, h = ?h?
+1 2 2 1 0 0 0 0 0       IOPTN
+?Cg? VCG
+?kx? 	  0.000000 0.000000
+0.000000 ?ky? 	   0.000000
+0.000000 0.000000  ?kz?      XPRDCT
+0           NBETAH
+0           NFIELD
 ```
