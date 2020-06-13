@@ -1,7 +1,7 @@
 device_name: Cylinder
-run_wamit_directory: C:\WAMITv7\wamit
-common_file_directory: C:/WAMITv7/Austin_Berrier/cylinder_input_test
-output_directory: C:/WAMITv7/Austin_Berrier/cylinder_output_test
-cases_file: C:/Users/berriera/PycharmProjects/flexWecDesignOpt/flexWecDesignOpt/examples/cylinder/cylinder_designs.csv
+run_wamit_command: C:\WAMITv7\wamit
+common_file_directory: examples/cylinder
+output_directory: examples/output
+cases_file: examples/barge/barge_designs.csv
 gmsh_exe_location: C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh
-mesh_refinement: 0.25
+mesh_refinement_factor: 0.50
