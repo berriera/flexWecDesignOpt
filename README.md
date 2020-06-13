@@ -25,6 +25,7 @@ pip install git+https://github.com/berriera/flexWecDesignOpt
 * Standard Python scientific libraries `numpy` and `scipy`
 * `pygymsh` for parameterized surface meshing
 * `meshmagick` for mesh trimming below the waterline and writing meshes to .gdf files
+* `pyYAML` for working with input files
 
 Note that `pygmsh` requires installing the application [Gmsh](http://gmsh.info/) and adding the application folder to your Python path
 
@@ -32,12 +33,14 @@ Note that `pygmsh` requires installing the application [Gmsh](http://gmsh.info/)
 ## Running in command line
 All flexWecDesignOpt options can be run in the command line on built in device types using
 ```python
-python main.py -i examples/WAMIT_meshing/input.yaml -m -r
+python main.py -i examples/barge/WAMIT_meshing/input.yaml -m -r
 ```
 ##### Arguments
 * `-i` or `--input` is a required argument and specifies the file path to the `input.yaml` file location
-* Including `-m` or `--mesh` specifies to use the built-in meshing automation to write .gdf files based off the device geometry
-* Including `-r` or `--run` specifies to run WAMIT on each set of input files to generate each set of output files
+* Including `-m` or `--mesh` specifies to use the built-in meshing automation to write .gdf files based off the device 
+geometry. Use this if GMSH is installed.
+* Including `-r` or `--run` specifies to run WAMIT on each set of input files to generate each set of output files. Use
+this if WAMIT is installed.
 
 ##### Creating a input.yaml file
 The input .yaml file required for using the package in command line requires 4 values and has 3 optional ones.
