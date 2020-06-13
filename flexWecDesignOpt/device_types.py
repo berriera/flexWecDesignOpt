@@ -45,7 +45,7 @@ class Cylinder(object):
         return geometry
 
 
-class BargeHighOrderMesh(object):
+class BargeWamitMesh(object):
 
     def __init__(self, design_vars):
         self.device_name = 'barge'
