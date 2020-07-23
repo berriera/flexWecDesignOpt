@@ -71,7 +71,8 @@ class FlexibleBarge(object):
         self.omega = (((self.E * self.inertia_area) / (self.rho * self.cross_section_area * self.L ** 4)) *
                       self.eigenvalues ** 4) ** (1 / 2)
         self.C = (self.omega ** 2) * self.M
-        # TODO: figure out where last value M(5,5) in barge.frc comes from
+        # TODO: figure out where last value M(5,5) in barge.frc comes from;
+        # Update: I think this value is just wrong and should be M(5,5) = Iy = 2.167E+09
 
     def substitutions(self):
         # Dictionary of values
