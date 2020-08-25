@@ -1,6 +1,6 @@
 import numpy as np
 import pygmsh
-from flexWecDesignOpt.analysis import eigenvalue_solver
+from flexWecDesignOpt.analysis import boundary_condition_frequency_solver
 
 
 class Device(object):
@@ -72,7 +72,7 @@ def barge_free_free_characteristic_equation(x):
 
 
 # Finds 8 roots of beam equation
-eigenvalues = eigenvalue_solver(barge_free_free_characteristic_equation, 8)
+eigenvalues = boundary_condition_frequency_solver(barge_free_free_characteristic_equation, 8)
 
 
 class FlexibleBarge(object):

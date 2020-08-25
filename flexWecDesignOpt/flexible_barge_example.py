@@ -1,7 +1,7 @@
 import numpy as np
 import pygmsh
 import os
-from analysis import eigenvalue_solver
+from analysis import boundary_condition_frequency_solver
 from analysis import run_wamit
 from file_mgmt import create_case_directory
 from substitution import create_case_files
@@ -34,7 +34,7 @@ def characteristic_equation(x):
 
 
 # Finds 8 roots of beam equation
-eigenvalues = eigenvalue_solver(characteristic_equation, 8)
+eigenvalues = boundary_condition_frequency_solver(characteristic_equation, 8)
 
 
 class FlexibleBarge(object):
