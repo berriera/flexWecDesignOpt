@@ -1,18 +1,18 @@
-def run_wamit(bem_command, flexible_location=''):
+def run_wamit(bem_command, flexible_bool=False):
     """
     This function runs the boundary element solver command in the current case directory.
 
     Args:
         bem_command (str): location of the boundary element method executable
-        flexible_location (str): location of the defmod executable
+        flexible_bool (bool): boolean indicating if generalizable body modes are being used in WAMIT
     Returns:
         None
     """
     import subprocess
     print('\tRunning BEM...')
     subprocess.run([bem_command])
-    if flexible_location != '':
-        subprocess.run([flexible_location])
+    if bem_command[-5:] == 'wamit' and flexible_bool is True:
+        subprocess.run(['defmod', 'Y'])
         subprocess.run([bem_command])
     return
 
