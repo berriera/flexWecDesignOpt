@@ -22,11 +22,6 @@ gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Wi
 mesh_refinement_factor = 0.40
 run_wamit_command = 'C:\WAMITv7\wamit'
 
-# File path to absolute location
-common_file_directory = os.path.abspath(common_file_directory)
-output_directory = os.path.abspath(output_directory)
-
-
 # Roots of beam equation with free-free boundary conditions
 def characteristic_equation(x):
     import math
