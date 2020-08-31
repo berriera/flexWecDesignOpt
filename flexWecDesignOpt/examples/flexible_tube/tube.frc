@@ -1,0 +1,14 @@
+! Flexible tube S3 WEC
+1 0 2 -2 0 0 0 0 0 IOPTN
+7 NDFR ! Number of radiation modes
+1 0 1 0 0 0 1 MODE ! 1 is a free mode, 0 is a fixed mode
+1000.0 RHO
+0.0 0.0 0.0 XCG YCG ZCG ! Center of gravity relative to the body coordinate system
+1 IMASS
+?mass_matrix?
+1 IDAMP
+?damping_matrix?
+1 ISTIF
+?stiffness_matrix?
+0 NBETAH   ! Number of Haskind wave headings
+0 NFIELD   ! Number of field points to be evaluated
