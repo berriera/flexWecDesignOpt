@@ -29,7 +29,20 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
         elif isinstance(variables, dict):
             try:
                 replacement_variable_key = line_text[substitution_indices[0] + 1: substitution_indices[1]]
-                replacement_string = str(variables[replacement_variable_key])
+                replacement_variable_value = variables[replacement_variable_key]
+                if isinstance(replacement_variable_value, int) or isinstance(replacement_variable_value, float):
+                    replacement_string = str(variables[replacement_variable_key])
+                elif isinstance(replacement_variable_value, np.ndarray):
+                    if replacement_variable_value.ndim == 1:
+                        array_string = np.array2string(replacement_variable_value)
+                        replacement_string = array_string[1:-1]
+                    elif replacement_variable_value.ndim == 2:
+                        replacement_string = ""
+                        row_count = replacement_variable_value.shape[0]
+                        for row in range(row_count):
+                            matrix_row = replacement_variable_value[row]
+                            matrix_row_string = np.array2string(matrix_row)
+                            replacement_string = replacement_string + matrix_row_string[1:-1] + '\n'
             except KeyError:
                 error_message = "\tError: Check substitution method for missing key " + replacement_variable_key + \
                                 ".\n\tIt is found on line number " + str(line_number) + " in input file " + file_name
@@ -74,7 +87,6 @@ def create_case_files(common_file_directory, substitution_array):
 
     Args:
         common_file_directory (str): Input file folder location
-        case_output_folder (str): Output file folder location
         substitution_array (one-dimensional array or dict): Design variable array or dict of variable substitutions
 
     Returns:
