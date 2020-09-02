@@ -42,7 +42,9 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
                         for row in range(row_count):
                             matrix_row = replacement_variable_value[row]
                             matrix_row_string = np.array2string(matrix_row)
-                            replacement_string = replacement_string + matrix_row_string[1:-1] + '\n'
+                            replacement_string = replacement_string + matrix_row_string[1:-1]
+                            if row != row_count - 1:
+                                replacement_string = replacement_string + '\n'
             except KeyError:
                 error_message = "\tError: Check substitution method for missing key " + replacement_variable_key + \
                                 ".\n\tIt is found on line number " + str(line_number) + " in input file " + file_name

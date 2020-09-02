@@ -68,12 +68,12 @@ def test_substitute__2_row_matrix():
     line_text = '?var_matrix?'
     variables = {'var_matrix': np.asarray([[0, 1], [2, 3]])}
     obs = substitute_variables_in_line(line_text, variables)
-    exp = '0 1\n2 3\n'
+    exp = '0 1\n2 3'
     assert obs == exp
 
 def test_substitute__3_row_matrix():
     line_text = '?var_matrix?'
     variables = {'var_matrix': np.asarray([[0, 1, 2], [3, 4, 5], [6, 7, 8]])}
     obs = substitute_variables_in_line(line_text, variables)
-    exp = '0 1 2\n3 4 5\n6 7 8\n'
+    exp = '0 1 2\n3 4 5\n6 7 8'
     assert obs == exp
