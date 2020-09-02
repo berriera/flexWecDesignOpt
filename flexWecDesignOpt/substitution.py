@@ -95,12 +95,14 @@ def create_case_files(common_file_directory, substitution_array):
 
     import shutil
     import os
-    extension_do_not_copy_list = ['.yaml', 'csv', '.py']
+    extension_copy_list = ['.pot', '.gdf', '.frc', '.spl', '.wam', '.cfg', '.ms2',
+                           '.csf', '.bpi', '.rao', '.dmp', '.txt']
+    # File extension copy list used in accordance with WAMIT input file list (Chapter 4 of WAMIT user manual)
     files = os.listdir(common_file_directory)
     for bem_input_file in files:
         file = os.path.join(common_file_directory, bem_input_file)
         extension = os.path.splitext(file)[1]
-        if extension not in extension_do_not_copy_list:
+        if extension in extension_copy_list:
             new_file_text = change_case_file(file, substitution_array)
             shutil.copy(file, os.getcwd())
             change_file = os.path.join(os.getcwd(), bem_input_file)
