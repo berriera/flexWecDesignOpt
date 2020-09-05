@@ -56,6 +56,7 @@ def submerged_mesh(device_name):
         vertices = mesh_clipped_below_waterline.vertices
         faces = mesh_clipped_below_waterline.faces
     meshmagick.mmio.write_GDF(device_name + '.gdf', vertices, faces)
+    return vertices
     # TODO: user specified mesh symmetry arguments for quicker write and meshing times,
     #  need to change meshmagick for this
 
