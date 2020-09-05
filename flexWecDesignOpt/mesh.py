@@ -44,14 +44,19 @@ def submerged_mesh(device_name):
         None
 
     """
+    import numpy as np
     import meshmagick.mesh_clipper
     import meshmagick.mmio
     import meshmagick.mesh
     vertices, faces = meshmagick.mmio.load_STL(device_name + '.stl')
-    mesh_all = meshmagick.mesh.Mesh(vertices, faces)  # TODO: healnormals function on mesh
-    mesh_clip_object = meshmagick.mesh_clipper.MeshClipper(source_mesh=mesh_all)
-    mesh_clipped_below_waterline = mesh_clip_object.clipped_mesh
-    meshmagick.mmio.write_GDF(device_name + '.gdf', mesh_clipped_below_waterline.vertices,
-                              mesh_clipped_below_waterline.faces)
+    if np.any(vertices[:, 2] >= 0):
+        mesh_all = meshmagick.mesh.Mesh(vertices, faces)  # TODO: healnormals function on mesh
+        mesh_clip_object = meshmagick.mesh_clipper.MeshClipper(source_mesh=mesh_all)
+        mesh_clipped_below_waterline = mesh_clip_object.clipped_mesh
+        vertices = mesh_clipped_below_waterline.vertices
+        faces = mesh_clipped_below_waterline.faces
+    meshmagick.mmio.write_GDF(device_name + '.gdf', vertices, faces)
     # TODO: user specified mesh symmetry arguments for quicker write and meshing times,
     #  need to change meshmagick for this
+
+    # TODO: make this into two separate functions: one for clipping and one for writing
