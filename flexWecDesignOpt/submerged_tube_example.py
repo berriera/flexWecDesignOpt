@@ -35,11 +35,12 @@ class FlexibleTube(object):
 
         # Mass properties
         self.rho = 532.6462876469635  # Calculated from Babarit et al. 2017
-        self.tube_volume = 2 * self.rho * np.pi * self.radius * self.thickness * self.length
+        self.tube_volume = 2 * np.pi * self.radius * self.thickness * self.length
         self.tube_mass = self.rho * self.tube_volume
         self.mass = self.tube_mass + 2 * self.towhead_mass
         self.Ix = self.tube_mass * (self.radius ** 2) + 2 * ((1 / 2) * self.towhead_mass * (self.radius ** 2))
-        self.Iy = 200
+        self.Iy = self.tube_mass * (1 / 2 * self.radius ** 2 + 1 / 12 * self.length ** 2) \
+                  + 2 * self.towhead_mass * ((1 / 4) * (self.radius ** 2 + self.length ** 2))
         self.Iz = self.Iy
 
         # Complete mass matrix for rigid body
@@ -52,8 +53,7 @@ class FlexibleTube(object):
 
         for i in range(self.resonant_mode_count):
             for j in range(self.resonant_mode_count):
-                self.mass_matrix[6+i][6+j] = 2
-
+                self.mass_matrix[6 + i][6 + j] = 2
 
         self.damping_matrix = np.zeros(shape=(self.degrees_of_freedom, self.degrees_of_freedom))
         self.stiffness_matrix = np.zeros(shape=(self.degrees_of_freedom, self.degrees_of_freedom))
@@ -80,6 +80,6 @@ tube_geometry = tube.geometry()
 create_case_directory(output_directory, 1)
 create_case_files(common_file_directory, tube_substitutions)
 create_mesh_file(tube_geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
-submerged_mesh(device_name)
-#run_wamit(run_wamit_command, flexible_bool=True)
+vertices = submerged_mesh(device_name)
+# run_wamit(run_wamit_command, flexible_bool=True)
 print('Done.')
