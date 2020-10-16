@@ -7,6 +7,8 @@ from substitution import create_case_files
 from mesh import create_mesh_file
 from mesh import submerged_mesh
 from analysis import run_wamit
+from output import write_dict_to_text_file
+from output import convert_array_to_dict
 
 run_wamit_command = 'C:\WAMITv7\wamit'
 gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
@@ -21,7 +23,7 @@ class FlexibleTube(object):
     def __init__(self, design_vars):
         # Simulation parameters
         self.seafloor_depth = 5.0
-        self.resonant_mode_count = 1
+        self.resonant_mode_count = 10
         self.degrees_of_freedom = 6 + self.resonant_mode_count
 
         # Design variable array
@@ -37,14 +39,6 @@ class FlexibleTube(object):
         self.water_rho = 1000
         self.mooring_stiffness = 510
         self.mooring_pretension = 443.4
-
-        # Resonant frequency information # TODO: take this out
-        w = np.asarray(
-            [2.1114360764249511, 4.5933899504176336, 7.7089354146509326, 11.6086922395909120, 16.3723249238653743,
-             0.5489434835683205, 1.4244105181770936, 1.9121722822149714, 3.9035022567988560, 6.6024612335389854])
-        nrm = np.asarray(
-            [0.0522554138385799, 0.0241890418770306, 0.0152970427382452, 0.0110450820083542, 0.0086118105373954,
-             -0.0814725919983839, -0.0218307770211154, -0.0230966022927663, -0.0104376725023571, -0.0058682851582704])
 
         # Mass properties
         self.rho = 532.6462876469635  # Calculated from Babarit et al. 2017
@@ -68,16 +62,23 @@ class FlexibleTube(object):
 
         for i in range(self.resonant_mode_count):
             for j in range(self.resonant_mode_count):
-                self.mass_matrix[6 + i][6 + j] = 2 # TOOO: modal mass matrix
+                self.mass_matrix[6 + i][6 + j] = 2  # TOOO: modal mass matrix
 
-        self.damping_matrix = np.zeros(shape=(self.degrees_of_freedom, self.degrees_of_freedom)) # TODO: modal damping matrix
-        self.stiffness_matrix = np.zeros(shape=(self.degrees_of_freedom, self.degrees_of_freedom)) # TODO: modal stiffness matrix
+        self.damping_matrix = np.zeros(
+            shape=(self.degrees_of_freedom, self.degrees_of_freedom))  # TODO: modal damping matrix
+        self.stiffness_matrix = np.zeros(
+            shape=(self.degrees_of_freedom, self.degrees_of_freedom))  # TODO: modal stiffness matrix
 
-    def substitutions(self):
-        return {'z_s': self.depth, 'mode_count': self.degrees_of_freedom, 'seafloor_depth': self.seafloor_depth,
-                'mass_matrix': self.mass_matrix, 'damping_matrix': self.damping_matrix,
-                'stiffness_matrix': self.stiffness_matrix
-                }
+    def substitutions(self, substitution_type='WAMIT'):
+        if substitution_type == 'WAMIT':
+            return {'z_s': self.depth, 'mode_count': self.degrees_of_freedom, 'seafloor_depth': self.seafloor_depth,
+                    'mass_matrix': self.mass_matrix, 'damping_matrix': self.damping_matrix,
+                    'stiffness_matrix': self.stiffness_matrix
+                    }
+        elif substitution_type == 'defmod':
+            return {'NEWMDS': self.resonant_mode_count, 'L': self.length, 'R': self.radius, 'Di': self.distensibility,
+                    'Ts': self.fiber_pretension, 'rho': self.water_rho, 'zs': self.depth
+                    }
 
     def geometry(self):
         geometry = pygmsh.opencascade.Geometry()
@@ -94,61 +95,117 @@ class FlexibleTube(object):
 
         L = self.length
         Di = self.distensibility
-        r = self.radius
+        r_s = self.radius
         Ss = math.pi * (self.radius ** 2)
         rho = 1000
         Ts = self.fiber_pretension
+        maximum_modal_radial_displacement = 0.005  # for modal normalization purposes
+        mode_type_count = self.resonant_mode_count // 2
 
         def mode_type_1__boundary_conditions(w, L, Di, Ts, rho):
-            lk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
-            uk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
-            return math.fabs((lk * L / 2) * math.tanh(uk * L / 2) - (uk * L / 2) * math.tan(lk * L / 2))
+            lowk = math.sqrt(
+                ((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
+            uppk = math.sqrt(
+                ((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
+            return math.fabs((lowk * L / 2) * math.tanh(uppk * L / 2) - (uppk * L / 2) * math.tan(lowk * L / 2))
 
         def mode_type_2__boundary_conditions(w, L, Di, Ts, rho, r_s, M, K_a):
             S_s = math.pi * (r_s ** 2)
-            lk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
-            uk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
-            return (uk * L / 2) * math.tanh(uk * L / 2) + (lk * L / 2) * math.tan(lk * L / 2) \
-                   - (((w ** 2) * rho * S_s * L) / (-M * (w ** 2) + 2 * K_a)) * (uk / lk + lk / uk) \
-                   * math.tanh(uk * L / 2) * math.tan(lk * L / 2)
+            lowk = math.sqrt(
+                ((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
+            uppk = math.sqrt(
+                ((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
+            return (uppk * L / 2) * math.tanh(uppk * L / 2) + (lowk * L / 2) * math.tan(lowk * L / 2) \
+                   - (((w ** 2) * rho * S_s * L) / (-M * (w ** 2) + 2 * K_a)) * (uppk / lowk + lowk / uppk) \
+                   * math.tanh(uppk * L / 2) * math.tan(lowk * L / 2)
 
         # TODO: potentially change from math to numpy
+        # TODO: change variable names to lowercase
 
-        lk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
-        uk = math.sqrt(((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
-
-        def mode_1__shape(lk, uk, L, Ss, r, nrm):
-            # First mode type
-            S = Ss - Ss * nrm * (lk * math.tanh(uk * L / 2) * np.cos(lk * x) / math.cos(lk * L / 2)
-                                 - uk * math.tan(lk * L / 2) * np.cosh(uk * x) / math.cosh(uk * L / 2))
-            dr = np.sqrt(S / math.pi) - r
-            return dr
-
-        def mode_2__shape(lk, uk, L, Ss, r, nrm):
-            S = Ss - Ss * nrm * lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2)
-                                           + math.tan(lk * L / 2) * np.sinh(uk * x) / math.cosh(uk * L / 2))
-            dr = np.sqrt(S / math.pi) - r
-            return dr
-
-
-        w_type_1 = boundary_condition_frequency_solver(mode_type_1__boundary_conditions, 5, h=0.5, freq_limit=20 * math.pi,
+        w_type_1 = boundary_condition_frequency_solver(mode_type_1__boundary_conditions, self.resonant_mode_count // 2,
+                                                       h=0.5, freq_limit=30 * math.pi,
                                                        extra_args=(self.length, self.distensibility,
                                                                    self.fiber_pretension, self.water_rho))
-        w_type_2 = boundary_condition_frequency_solver(mode_type_2__boundary_conditions, 5, h=0.5, freq_limit=20 * math.pi,
+        w_type_2 = boundary_condition_frequency_solver(mode_type_2__boundary_conditions, self.resonant_mode_count // 2,
+                                                       h=0.5, freq_limit=30 * math.pi,
                                                        extra_args=(self.length, self.distensibility,
                                                                    self.fiber_pretension, self.water_rho,
-                                                                   self.radius, self.mass, 510))
+                                                                   self.radius, self.mass, self.mooring_stiffness))
+
+        # Combine the two frequency arrays into one
+        w = np.concatenate((w_type_1, w_type_2), axis=None)
+
+        # Find lk and uk values for each modal frequency
+        lk_vector = np.sqrt(((2 * np.pi) / (Di * Ts)) * (np.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
+        uk_vector = np.sqrt(((2 * np.pi) / (Di * Ts)) * (np.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) + 1))
+
+        # Calculate normalization factors for each modal shape
+        # Analysis used to calculate normalization factors is based on a Taylor Series expansion of a function used to
+        # define a maximum radial displacement in the mode shape; since we define a small maximum displacement and
+        # expect a small normalization factor, only up through linear terms are necessary in the expansion
+        nrm_type_1 = np.zeros(self.resonant_mode_count // 2)
+        nrm_type_2 = np.zeros(self.resonant_mode_count // 2)
+
+        for i in range(mode_type_count):
+            lk = lk_vector[i]
+            uk = uk_vector[i]
+            shape_type_1 = (lk * np.tanh(uk * L / 2) * np.cos(lk * x) / np.cos(lk * L / 2)
+                            - uk * np.tan(lk * L / 2) * np.cosh(uk * x) / np.cosh(uk * L / 2))
+            nrm_type_1[i] = (2 / np.max(np.abs(shape_type_1))) * (maximum_modal_radial_displacement / r_s)
+
+        for i in range(mode_type_count, 2 * mode_type_count):
+            lk = lk_vector[i]
+            uk = uk_vector[i]
+            shape_type_2 = lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2) \
+                                      + math.tan(lk * L / 2) * np.sinh(uk * x) / math.cosh(uk * L / 2))
+            nrm_type_2[i - mode_type_count] = (2 / np.max(np.abs(shape_type_2))) \
+                                              * (maximum_modal_radial_displacement / r_s)
+
+        normalization_factors = np.concatenate((nrm_type_1, nrm_type_2), axis=None)
+
+        def mode_1__shape(i, x, z_component_flag, gradient_flag, lk, uk, L, Ss, r, nrm):
+            # First mode type
+            lk = lk[i]
+            uk = uk[i]
+            shape = (lk * math.tanh(uk * L / 2) * np.cos(lk * x) / math.cos(lk * L / 2)
+                     - uk * math.tan(lk * L / 2) * np.cosh(uk * x) / math.cosh(uk * L / 2))
+            nrm = 1 / np.max(np.abs(shape))
+            S = Ss - Ss * nrm * shape
+            dr = np.sqrt(S / math.pi) - r
+            return dr
+
+        def mode_2__shape(i, x, z_component_flag, gradient_flag, lk, uk, L, Ss, r, nrm):
+            lk = lk[i]
+            uk = uk[i]
+            shape = lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2)
+                               + math.tan(lk * L / 2) * np.sinh(uk * x) / math.cosh(uk * L / 2))
+            nrm = 1 / np.max(np.abs(shape))
+            S = Ss - Ss * nrm * shape
+            dr = np.sqrt(S / math.pi) - r
+            return dr
+
+        return w, normalization_factors
 
 
 # Design variables
 print('Case: ', str(1))
-design_variables = np.asarray([-1, 0.274, 0.01, 10, 0, 0, 110])
+create_case_directory(output_directory, 1)
+design_variables = np.asarray([-1, 0.274, 0.01, 10, 1.12e-4, 0, 110])
 tube = FlexibleTube(design_variables)
 tube_substitutions = tube.substitutions()
 tube_geometry = tube.geometry()
-create_case_directory(output_directory, 1)
+frequencies, mode_normalization_factors = tube.modes()
+
+mode_variable_dict = tube.substitutions(substitution_type='defmod')
+w_dict = convert_array_to_dict('w', frequencies, starting_index=1)
+nrm_dict = convert_array_to_dict('nrm', mode_normalization_factors, starting_index=1)
+combined_defmod_dict = {**mode_variable_dict, **w_dict, **nrm_dict}
+write_dict_to_text_file(combined_defmod_dict, file_name='defmod.txt')
+
+
 create_case_files(common_file_directory, tube_substitutions)
 create_mesh_file(tube_geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
 vertices = submerged_mesh(device_name)
 # run_wamit(run_wamit_command, flexible_bool=True)
+write_dict_to_text_file(tube_substitutions)
 print('Done.')
