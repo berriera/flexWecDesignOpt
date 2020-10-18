@@ -2,6 +2,8 @@ import pygmsh
 import os
 import numpy as np
 import math
+
+# Internal imports # TODO: change imports
 from file_mgmt import create_case_directory
 from substitution import create_case_files
 from mesh import create_mesh_file
@@ -10,18 +12,18 @@ from analysis import run_wamit
 from output import write_dict_to_text_file
 from output import convert_array_to_dict
 
+# Executable locations and file setting variables
 run_wamit_command = 'C:\WAMITv7\wamit'
 gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
 common_file_directory = os.path.abspath(os.path.join('examples', 'flexible_tube'))
 output_directory = os.path.abspath(os.path.join('examples', 'output'))
-device_name = 'tube'
-mesh_refinement_factor = 0.50
 
 
 class FlexibleTube(object):
 
     def __init__(self, design_vars):
         # Simulation parameters
+        self.water_rho = 1000
         self.seafloor_depth = 5.0
         self.resonant_mode_count = 10
         self.degrees_of_freedom = 6 + self.resonant_mode_count
@@ -36,7 +38,6 @@ class FlexibleTube(object):
         self.eta = design_vars[5]
         self.towhead_mass = design_vars[6]
         self.fiber_pretension = 1.8770e4
-        self.water_rho = 1000
         self.mooring_stiffness = 510
         self.mooring_pretension = 443.4
 
@@ -89,6 +90,7 @@ class FlexibleTube(object):
     def modes(self):
         import math
         import numpy as np
+        import scipy.io
         from analysis import boundary_condition_frequency_solver
 
         x = np.arange(-self.length / 2, self.length / 2, 0.001)
@@ -146,48 +148,35 @@ class FlexibleTube(object):
         nrm_type_1 = np.zeros(self.resonant_mode_count // 2)
         nrm_type_2 = np.zeros(self.resonant_mode_count // 2)
 
+        dr = np.zeros((np.size(w), np.size(x)))
         for i in range(mode_type_count):
             lk = lk_vector[i]
             uk = uk_vector[i]
             shape_type_1 = (lk * np.tanh(uk * L / 2) * np.cos(lk * x) / np.cos(lk * L / 2)
                             - uk * np.tan(lk * L / 2) * np.cosh(uk * x) / np.cosh(uk * L / 2))
             nrm_type_1[i] = (2 / np.max(np.abs(shape_type_1))) * (maximum_modal_radial_displacement / r_s)
+            S = Ss - Ss * nrm_type_1[i] * shape_type_1
+            dr[i, :] = np.sqrt(S / math.pi) - r_s
 
         for i in range(mode_type_count, 2 * mode_type_count):
             lk = lk_vector[i]
             uk = uk_vector[i]
-            shape_type_2 = lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2) \
+            shape_type_2 = lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2)
                                       + math.tan(lk * L / 2) * np.sinh(uk * x) / math.cosh(uk * L / 2))
             nrm_type_2[i - mode_type_count] = (2 / np.max(np.abs(shape_type_2))) \
                                               * (maximum_modal_radial_displacement / r_s)
+            S = Ss - Ss * nrm_type_2[i - mode_type_count] * shape_type_2
+            dr[i, :] = np.sqrt(S / math.pi) - r_s
 
         normalization_factors = np.concatenate((nrm_type_1, nrm_type_2), axis=None)
-
-        def mode_1__shape(i, x, z_component_flag, gradient_flag, lk, uk, L, Ss, r, nrm):
-            # First mode type
-            lk = lk[i]
-            uk = uk[i]
-            shape = (lk * math.tanh(uk * L / 2) * np.cos(lk * x) / math.cos(lk * L / 2)
-                     - uk * math.tan(lk * L / 2) * np.cosh(uk * x) / math.cosh(uk * L / 2))
-            nrm = 1 / np.max(np.abs(shape))
-            S = Ss - Ss * nrm * shape
-            dr = np.sqrt(S / math.pi) - r
-            return dr
-
-        def mode_2__shape(i, x, z_component_flag, gradient_flag, lk, uk, L, Ss, r, nrm):
-            lk = lk[i]
-            uk = uk[i]
-            shape = lk * uk * (-math.tanh(uk * L / 2) * np.sin(lk * x) / math.cos(lk * L / 2)
-                               + math.tan(lk * L / 2) * np.sinh(uk * x) / math.cosh(uk * L / 2))
-            nrm = 1 / np.max(np.abs(shape))
-            S = Ss - Ss * nrm * shape
-            dr = np.sqrt(S / math.pi) - r
-            return dr
-
+        scipy.io.savemat('radial_displacement.mat', {'radial_displacement_array': dr})
         return w, normalization_factors
 
 
 # Design variables
+
+device_name = 'tube'
+mesh_refinement_factor = 0.50
 print('Case: ', str(1))
 create_case_directory(output_directory, 1)
 design_variables = np.asarray([-1, 0.274, 0.01, 10, 1.12e-4, 0, 110])
@@ -201,7 +190,6 @@ w_dict = convert_array_to_dict('w', frequencies, starting_index=1)
 nrm_dict = convert_array_to_dict('nrm', mode_normalization_factors, starting_index=1)
 combined_defmod_dict = {**mode_variable_dict, **w_dict, **nrm_dict}
 write_dict_to_text_file(combined_defmod_dict, file_name='defmod.txt')
-
 
 create_case_files(common_file_directory, tube_substitutions)
 create_mesh_file(tube_geometry, device_name, gmsh_exe_location, mesh_refinement_factor)
