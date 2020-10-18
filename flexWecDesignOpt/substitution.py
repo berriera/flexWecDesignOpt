@@ -34,14 +34,14 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
                     replacement_string = str(variables[replacement_variable_key])
                 elif isinstance(replacement_variable_value, np.ndarray):
                     if replacement_variable_value.ndim == 1:
-                        array_string = np.array2string(replacement_variable_value)
+                        array_string = np.array2string(replacement_variable_value, max_line_width=1e4)
                         replacement_string = array_string[1:-1]
                     elif replacement_variable_value.ndim == 2:
                         replacement_string = ""
                         row_count = replacement_variable_value.shape[0]
                         for row in range(row_count):
                             matrix_row = replacement_variable_value[row]
-                            matrix_row_string = np.array2string(matrix_row)
+                            matrix_row_string = np.array2string(matrix_row, max_line_width=1e4)
                             replacement_string = replacement_string + matrix_row_string[1:-1]
                             if row != row_count - 1:
                                 replacement_string = replacement_string + '\n'
