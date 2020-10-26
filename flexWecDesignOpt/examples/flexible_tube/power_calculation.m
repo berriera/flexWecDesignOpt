@@ -1,17 +1,21 @@
 function P_annual = power_calculation(file_folder, Xs, rs, ro, n, rho, ls, tube_length)
 
-    % Load variables from Python
-    file_location = fullfile(file_folder, 'radial_displacement.mat')
-    load(file_location)
-    %load('C:\Users\13365\Desktop\radial_displacement.mat');
+    % Load mode information array generated from Python
+    radial_displacement_file_location = fullfile(file_folder, 'radial_displacement.mat');
+    load(radial_displacement_file_location);
     f = radial_displacement_array;
+
+    % Hardcoded values used for testing
     %Xs = 0.005; tube_length = 10; rs = 0.274; ls = 1; rho = 1000; n = 0.323; ro = 0.2108;
+
+    % Calculate tube area and array of x values along the tube length
     Ss = pi * (rs ^ 2);
     x = linspace(-tube_length / 2, tube_length / 2, size(f, 2));
 
     % Read in WAMIT data from output file
+    output_file_location = fullfile(file_folder, 'tube.out')
     hydro = struct();
-    hydro = Read_WAMIT(hydro,'C:\Users\13365\Desktop\tube.out','rao');
+    hydro = Read_WAMIT(hydro, output_file_location,'rao');
     re = squeeze(hydro.ex_re);
     ma = squeeze(hydro.ex_ma);
     ph = squeeze(hydro.ex_ph);
@@ -33,7 +37,7 @@ function P_annual = power_calculation(file_folder, Xs, rs, ro, n, rho, ls, tube_
     RAO = RAO.^(1/2);
     dL = RAO/rs;
 
-    % Power Calculation
+    % Calculate scaled power
     p = load('C:\Users\13365\Desktop\T_Prob_Dist.mat'); % Humbolt Bay Probabilities
     Pa = interp1(p.Ta/sqrt(10),p.Pa/100,T,'nearest','extrap'); % Assuming exp model is 1:10 scale
     P_annual = 0;
