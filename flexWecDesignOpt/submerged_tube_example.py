@@ -16,7 +16,8 @@ from output import convert_array_to_dict
 run_wamit_command = 'C:\WAMITv7\wamit'
 gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
 common_file_directory = os.path.abspath(os.path.join('examples', 'flexible_tube'))
-output_directory = os.path.abspath(os.path.join('examples', 'output'))
+# output_directory = os.path.abspath(os.path.join('examples', 'output'))
+output_directory = 'C:/Users/13365/Desktop/optimization_output'  # set up for new testing runs
 
 
 class FlexibleTube(object):
@@ -27,13 +28,14 @@ class FlexibleTube(object):
         # Simulation parameters
         self.water_rho = 1000
         self.seafloor_depth = 5.0
-        self.resonant_mode_count = 10
+        self.resonant_mode_count = 24
         self.degrees_of_freedom = 6 + self.resonant_mode_count
+        self.maximum_modal_radial_displacement = 0.005
 
         # Design variable array
         self.device_name = 'tube'
         self.depth = design_vars[0]
-        self.radius = design_vars[1]
+        self.radius_s = design_vars[1]
         self.thickness = design_vars[2]
         self.length = design_vars[3]
         self.distensibility = design_vars[4]
@@ -44,20 +46,20 @@ class FlexibleTube(object):
         self.mooring_pretension = 443.4
 
         # Inertial properties of displaced water
-        self.tube_displaced_volume = math.pi * (self.radius ** 2) * self.length
+        self.tube_displaced_volume = math.pi * (self.radius_s ** 2) * self.length
         self.displaced_water_mass = self.water_rho * self.tube_displaced_volume
-        self.water_Ix = (1 / 2) * self.displaced_water_mass * (self.radius ** 2)
-        self.water_Iy = (1 / 12) * self.displaced_water_mass * (3 * (self.radius ** 2) + (self.length ** 2))
+        self.water_Ix = (1 / 2) * self.displaced_water_mass * (self.radius_s ** 2)
+        self.water_Iy = (1 / 12) * self.displaced_water_mass * (3 * (self.radius_s ** 2) + (self.length ** 2))
         self.water_Iz = self.water_Iy
 
         # Inertial properties of tube # TODO: go back and check this math
         self.tube_elastic_material_rho = 532.6462876469635  # Calculated from Babarit et al. 2017
-        self.tube_volume = (2 * np.pi * self.radius * self.thickness) * self.length
+        self.tube_volume = (2 * np.pi * self.radius_s * self.thickness) * self.length
         self.tube_mass = self.tube_elastic_material_rho * self.tube_volume
         self.mass = self.tube_mass + 2 * self.towhead_mass
-        self.tube_Ix = self.tube_mass * (self.radius ** 2) + 2 * ((1 / 2) * self.towhead_mass * (self.radius ** 2))
-        self.tube_Iy = self.tube_mass * (1 / 2 * self.radius ** 2 + 1 / 12 * self.length ** 2) \
-                       + 2 * self.towhead_mass * ((1 / 4) * (self.radius ** 2 + self.length ** 2))
+        self.tube_Ix = self.tube_mass * (self.radius_s ** 2) + 2 * ((1 / 2) * self.towhead_mass * (self.radius_s ** 2))
+        self.tube_Iy = self.tube_mass * (1 / 2 * self.radius_s ** 2 + 1 / 12 * self.length ** 2) \
+                       + 2 * self.towhead_mass * ((1 / 4) * (self.radius_s ** 2 + self.length ** 2))
         self.tube_Iz = self.tube_Iy
 
         # Complete mass matrix for rigid body
@@ -80,6 +82,7 @@ class FlexibleTube(object):
         # Stiffness matrix for rigid and flexible body modes
         self.stiffness_matrix = np.zeros(shape=(self.degrees_of_freedom, self.degrees_of_freedom))
         # TODO: modal stiffness matrix
+        # TODO: MODE variable for fixed and free modes in .frc WAMTI file
 
     def substitutions(self, substitution_type='WAMIT'):
         # Variable substitutions for input files
@@ -90,7 +93,7 @@ class FlexibleTube(object):
                     }
         # Variable substitutions to be written to a .txt file for reading into custom defmod.f file
         elif substitution_type == 'defmod':
-            return {'NEWMDS': self.resonant_mode_count, 'L': self.length, 'R': self.radius, 'Di': self.distensibility,
+            return {'NEWMDS': self.resonant_mode_count, 'L': self.length, 'R': self.radius_s, 'Di': self.distensibility,
                     'Ts': self.fiber_pretension, 'rho': self.water_rho, 'zs': self.depth
                     }
 
@@ -98,7 +101,7 @@ class FlexibleTube(object):
         # Mesh of a sunken tube
         geometry = pygmsh.opencascade.Geometry()
         geometry.add_cylinder(x0=[-self.length / 2, 0, self.depth], axis=[self.length, 0, 0],
-                              radius=self.radius, angle=2 * np.pi, char_length=1)
+                              radius=self.radius_s, angle=2 * np.pi, char_length=1)
         return geometry
 
     def modes(self):
@@ -114,15 +117,15 @@ class FlexibleTube(object):
         # Variable renames from above for ease in reading math here
         L = self.length
         Di = self.distensibility
-        r_s = self.radius
-        Ss = math.pi * (self.radius ** 2)
+        r_s = self.radius_s
+        Ss = math.pi * (self.radius_s ** 2)
         rho = self.water_rho
         Ts = self.fiber_pretension
-        maximum_modal_radial_displacement = 0.005  # for modal normalization purposes
+        maximum_modal_radial_displacement = self.maximum_modal_radial_displacement  # for modal normalization purposes
         mode_type_count = self.resonant_mode_count // 2
 
         # From Babarit et al. 2017. Zeroes of these two functions are used to find modal frequencies
-        def mode_type_1__boundary_conditions(w, L, Di, Ts, rho):
+        def mode_type_1__boundary_conditions(w, L, Di, Ts, rho):  # TODO: change variable names for scoping
             lowk = math.sqrt(
                 ((2 * np.pi) / (Di * Ts)) * (math.sqrt(1 + (Ts * rho * (Di ** 2) * (w ** 2) / math.pi)) - 1))
             uppk = math.sqrt(
@@ -151,7 +154,7 @@ class FlexibleTube(object):
                                                        h=0.5, freq_limit=30 * math.pi,
                                                        extra_args=(self.length, self.distensibility,
                                                                    self.fiber_pretension, self.water_rho,
-                                                                   self.radius, self.mass, self.mooring_stiffness))
+                                                                   self.radius_s, self.mass, self.mooring_stiffness))
 
         # Combine the two frequency arrays into one
         w = np.concatenate((w_type_1, w_type_2), axis=None)
@@ -195,6 +198,15 @@ class FlexibleTube(object):
         scipy.io.savemat('radial_displacement.mat', {'radial_displacement_array': dr})
         return w, normalization_factors
 
+    def objective(self, output_path):  # TODO: figure out how to call power_calculation from here
+        import matlab.engine
+        eng = matlab.engine.start_matlab()
+        annual_power = eng.power_calculation(output_path, self.maximum_modal_radial_displacement,
+                                             self.radius_s, 0.2108, 0.323, self.water_rho, 1.0, self.length)
+        # TODO: figure out r0, eta damping values
+        eng.quit()
+        return annual_power
+
 
 # Geometry name and meshing variables
 device_name = 'tube'
@@ -202,7 +214,7 @@ mesh_refinement_factor = 0.50
 
 # Folder creation
 print('Case: ', str(1))
-create_case_directory(output_directory, 1)
+working_folder = create_case_directory(output_directory, 1)  # TODO: change constant iteration counter integer here
 
 # Creates a submerged flexible tube object
 design_variables = np.asarray([-1, 0.274, 0.01, 10, 1.12e-4, 0, 110])
@@ -226,4 +238,5 @@ vertices = submerged_mesh(device_name)
 
 # Output logger
 write_dict_to_text_file(tube_substitutions)
+#  objective_function = tube.objective(working_folder)
 print('Done.')
