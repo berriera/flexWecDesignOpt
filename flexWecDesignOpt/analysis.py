@@ -1,18 +1,20 @@
-def run_wamit(bem_command, flexible_bool=False):
+def run_wamit(bem_command, modes_command=''):
     """
     This function runs the boundary element solver command in the current case directory.
 
     Args:
         bem_command (str): location of the boundary element method executable
-        flexible_bool (bool): boolean indicating if generalizable body modes are being used in WAMIT
+        modes_command (str):location of the defmod executable
     Returns:
         None
     """
     import subprocess
     print('\tRunning BEM...')
     subprocess.run([bem_command])
-    if bem_command[-5:] == 'wamit' and flexible_bool is True:
-        subprocess.run(['defmod', 'Y'])
+
+    # Runs user created generalized body modes application and then reruns WAMIT with the created gdf.mod file
+    if not modes_command:
+        subprocess.run([modes_command])
         subprocess.run([bem_command])
     return
 
