@@ -13,7 +13,8 @@ import output
 run_wamit_command = r'C:\WAMITv7\wamit'
 defmod_location = r'C:\Users\13365\Desktop\defmod.exe'
 gmsh_exe_location = 'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
-common_file_directory = os.path.abspath(os.path.join('examples', 'flexible_tube'))
+# common_file_directory = os.path.abspath(os.path.join('examples', 'flexible_tube'))
+common_file_directory = os.getcwd()
 # output_directory = os.path.abspath(os.path.join('examples', 'output'))
 output_directory = 'C:/Users/13365/Desktop/optimization_output'  # set up for new testing runs
 
@@ -230,6 +231,7 @@ vertices = mesh.submerged_mesh(device_name)
 
 # Output logger
 output.write_dict_to_text_file(tube_substitutions)
+os.chdir(common_file_directory)
 objective_function = tube.objective(working_folder)
 print(objective_function)
 print('kW')
