@@ -14,9 +14,12 @@ def run_wamit(bem_command, modes_command=''):
 
     # Runs user created generalized body modes application and then reruns WAMIT with the created gdf.mod file
     if not modes_command:
+        print('\tRunning defmod...')
         subprocess.run([modes_command])
+        print('\tRerunning BEM...')
         subprocess.run([bem_command])
     return
+
 
 def boundary_condition_frequency_solver(function_name, eigenvalue_count=1, h=1.0, freq_limit=50, reltol=1e-5, eps=1e-3,
                                         extra_args=()):
@@ -24,6 +27,7 @@ def boundary_condition_frequency_solver(function_name, eigenvalue_count=1, h=1.0
     This function finds a user-specified number of eigenvalue solutions to a device's characteristic equation.
 
     Args:
+        function_name: the name of the system to be iteratively solved
         eigenvalue_count (int): number of unique roots to f(x) = 0 be found
         h (float): increment used to guess new roots; default is 1.0
         freq_limit (float): maximum allowable frequency to be found; used as a break in case of unsuccessful root
@@ -79,7 +83,6 @@ def boundary_condition_frequency_solver__multidimensional(function_name, eigenva
     # TODO: add multidimensional test functions
     from scipy.optimize import fsolve
     import numpy as np
-    import warnings
 
     x0 = np.zeros(var_count) + reltol
     found_roots_count = 0
