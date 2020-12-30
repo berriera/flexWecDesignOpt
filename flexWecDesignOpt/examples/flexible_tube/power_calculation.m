@@ -1,4 +1,4 @@
-function P_annual = power_calculation(file_folder, Xs, rs, ro, n, rho, ls, tube_length)
+function P_annual = power_calculation(file_folder, froude_scale, Xs, rs, ro, n, rho, ls, tube_length)
 
     % Load mode information array generated from Python
     radial_displacement_file_location = fullfile(file_folder, 'radial_displacement.mat');
@@ -39,7 +39,7 @@ function P_annual = power_calculation(file_folder, Xs, rs, ro, n, rho, ls, tube_
 
     % Calculate scaled power
     p = load('C:\Users\13365\Desktop\T_Prob_Dist.mat'); % Humbolt Bay Probabilities
-    Pa = interp1(p.Ta/sqrt(10),p.Pa/100,T,'nearest','extrap'); % Assuming exp model is 1:10 scale
+    Pa = interp1(p.Ta/sqrt(froude_scale),p.Pa/100,T,'nearest','extrap'); % Assuming exp model is 1:10 scale
     P_annual = 0;
     H = 0.2*ls;
     Y = (H/2)*dL; % Strain amplitude
@@ -47,5 +47,5 @@ function P_annual = power_calculation(file_folder, Xs, rs, ro, n, rho, ls, tube_
         P(k) = (8*rho*n*(rs/ro)*pi*pi*Ss/T(k)/T(k))*trapz(x,Y(k,:).^2);
         P_annual = P_annual+P(k)*Pa(k);
     end
-    P_annual = P_annual*(10^(7/2))/1000;  % Value at Full Scale (kW), paper approx 100-200 kW
+    P_annual = P_annual*(froude_scale^(7/2))/1000;  % Value at Full Scale (kW), paper approx 100-200 kW
 end
