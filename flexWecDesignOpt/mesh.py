@@ -59,5 +59,3 @@ def submerged_mesh(device_name):
     return vertices
     # TODO: user specified mesh symmetry arguments for quicker write and meshing times,
     #  need to change meshmagick for this
-
-    # TODO: make this into two separate functions: one for clipping and one for writing
