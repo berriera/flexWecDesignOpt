@@ -1,22 +1,30 @@
-def run_wamit(bem_command, modes_command=''):
+def run_wamit(bem_command, modes_command='', verbosity=True):
     """
     This function runs the boundary element solver command in the current case directory.
 
     Args:
         bem_command (str): location of the boundary element method executable
-        modes_command (str):location of the defmod executable
+        modes_command (str): location of the defmod executable
+        verbosity (bool): specify if print statements are outputted to screen
     Returns:
         None
     """
+    import os
     import subprocess
-    print('\tRunning BEM...')
+    
+    if verbosity is True:
+        print('\tRunning BEM...')
+    assert os.path.isfile(bem_command), 'Boundary element solver .exe file not found'
     subprocess.run([bem_command])
 
     # Runs user created generalized body modes application and then reruns WAMIT with the created gdf.mod file
     if not modes_command:
-        print('\tRunning defmod...')
+        if verbosity is True:
+            print('\tRunning defmod...')
+        assert os.path.isfile(modes_command), 'defmod.exe file not found'
         subprocess.run([modes_command])
-        print('\tRerunning BEM...')
+        if verbosity is True:
+            print('\tRerunning BEM...')
         subprocess.run([bem_command])
     return
 
@@ -102,3 +110,39 @@ def boundary_condition_frequency_solver__multidimensional(function_name, eigenva
     else:
         nonzero_eigenvalues = eigenvalues[eigenvalues[:, var_increment].argsort()]
     return nonzero_eigenvalues
+
+
+def evaluate_device(DeviceClass, design_variables):
+    # External import
+    import os
+
+    # Internal imports
+    import substitution
+    import mesh
+    import analysis  # TODO: fix this to not import own file
+    import file_mgmt
+    import output
+
+    # Create output folder for device evaluation
+    working_folder = file_mgmt.create_case_directory(DeviceClass.output_file_directory)
+
+    # Create a device object
+    device_object = DeviceClass(design_variables)
+    input_file_substitutions = device_object.substitutions()
+    mesh_geometry = device_object.geometry()
+
+    # Create input files in directory and then run WAMIT in that directory
+    substitution.create_case_files(device_object.input_file_directory, input_file_substitutions)
+    mesh.create_mesh_file(mesh_geometry, device_object.name, device_object.gmsh_exe_location,
+                          device_object.mesh_refinement_factor)
+    vertices = mesh.submerged_mesh(device_object.name)
+    if not device_object.defmod_location:
+        analysis.run_wamit(device_object.run_wamit_command, modes_command=device_object.defmod_location)
+    else:
+        analysis.run_wamit(device_object.run_wamit_command)
+
+    # Output logger
+    output.write_dict_to_text_file(input_file_substitutions)
+    os.chdir(device_object.input_file_directory)
+    objective_function = device_object.objective(working_folder)
+    return objective_function
