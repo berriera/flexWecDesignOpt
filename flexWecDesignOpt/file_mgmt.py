@@ -1,26 +1,32 @@
-def create_case_directory(output_directory='', case_number=1):
+def create_case_directory(output_directory='', folder_name='design_case_'):
     """Creates a directory to hold each design's input and generated output files.
 
     Args:
-        case_number (int): number used for result folder notation
         output_directory (str): folder location for all generated results
+        folder_name (str): folder naming convention
 
     Returns:
         directory_path (str): location of the created case directory
     """
     import os
+
+    # Count how many designs have already been evaluated in the output folder
     file_path_list = os.listdir(output_directory)
-    folder_count = len(file_path_list)
-    directory_path = os.path.join(output_directory, 'case_' + str(case_number))
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
-    else:
-        case_number = folder_count + 1
-        print('\tCase output folder already exists. Renaming to case_' + str(case_number))
-        directory_path = os.path.join(output_directory, 'case_' + str(case_number))
-        os.makedirs(directory_path)
-    os.chdir(directory_path)
-    return directory_path
+    folder_count = 1
+    for file in file_path_list:
+        if file.startswith(folder_name):
+            folder_count += 1
+    case_folder_path = os.path.join(output_directory, folder_name + str(folder_count))
+
+    # Creates the case output folder if it does not already exist
+    assert not os.path.exists(case_folder_path), "Design output folder already exists"
+    os.makedirs(case_folder_path)
+    os.chdir(case_folder_path)
+    return case_folder_path
+
+
+def delete_case_files():  # TODO: create function to delete input and output files
+    return
 
 
 def parse_input(input_file_location):
