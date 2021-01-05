@@ -39,7 +39,7 @@ def main():
     common_file_directory = os.path.abspath(input_file_names['common_file_directory'])
     cases_file = os.path.abspath(input_file_names['cases_file'])
     output_directory = os.path.abspath(input_file_names['output_directory'])
-    # TODO: create output directory if it doesn't exist
+
     if args.run:
         try:
             bem_command = input_file_names['run_wamit_command']
