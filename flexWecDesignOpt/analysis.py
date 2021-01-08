@@ -117,7 +117,7 @@ def evaluate_device(DeviceClass, design_variables):
     import os
 
     # Internal imports
-    import substitution
+    import write_input_files
     import mesh
     import analysis  # TODO: fix this to not import own file
     import file_mgmt
@@ -132,10 +132,8 @@ def evaluate_device(DeviceClass, design_variables):
     mesh_geometry = device_object.geometry()
 
     # Create input files in directory and then run WAMIT in that directory
-    substitution.create_case_files(device_object.input_file_directory, input_file_substitutions)
-    mesh.create_mesh_file(mesh_geometry, device_object.name, device_object.gmsh_exe_location,
-                          device_object.mesh_refinement_factor)
-    vertices = mesh.submerged_mesh(device_object.name)
+    write_input_files.create_case_files(device_object.input_file_directory, input_file_substitutions)
+    mesh.create_mesh_file(mesh_geometry, device_object.name, device_object.gmsh_exe_location)
     if not device_object.defmod_location:
         analysis.run_wamit(device_object.run_wamit_command, modes_command=device_object.defmod_location)
     else:
