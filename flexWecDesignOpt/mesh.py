@@ -1,14 +1,12 @@
 def create_mesh_file(geometry, device_name, gmsh_exe_location, verbosity=True):
     # TODO: set default device_name = 'mesh_file'
-    # TODO: make submerged mesh internal
     """This function creates the initial mesh file in .stl format using the software GMSH
 
     Args:
         geometry (geometry object): generated from the device.geometry class from a set of design variables
         device_name (str): name of the device
         gmsh_exe_location (str): file location of the installed GMSH software (should end in 'gmsh')
-        mesh_refinement_factor (float): specifies how refined the generated mesh is. Lower means more refined.
-                                            Default is 0.5
+        verbosity (bool): controls printing verbosity for writing mesh file
 
     Returns:
         None
@@ -18,18 +16,22 @@ def create_mesh_file(geometry, device_name, gmsh_exe_location, verbosity=True):
 
     if verbosity:
         print('\tMeshing...')
-
     mesh = pygmsh.generate_mesh(geometry,
                                 dim=2,
                                 remove_lower_dim_cells=True,
                                 gmsh_path=gmsh_exe_location,
                                 mesh_file_type='stl',
                                 verbose=False)
-    mesh.write(device_name + '.stl')
+
+    mesh_file_name = device_name + '.stl'
+    mesh.write(mesh_file_name)
+    _trim_mesh_below_waterline(device_name=device_name)
+
+    if verbosity:
+        print('\tDone.')
 
 
-def submerged_mesh(device_name):
-    # TODO: change default device name, adjust analysis.py accordingly
+def _trim_mesh_below_waterline(device_name):
     """This function clips the .stl mesh below the waterline then writes the new .gdf mesh file to the current
     output folder.
 
@@ -44,6 +46,7 @@ def submerged_mesh(device_name):
     import meshmagick.mesh_clipper
     import meshmagick.mmio
     import meshmagick.mesh
+
     vertices, faces = meshmagick.mmio.load_STL(device_name + '.stl')
     if np.any(vertices[:, 2] >= 0):
         mesh_all = meshmagick.mesh.Mesh(vertices, faces)  # TODO: healnormals function on mesh
@@ -52,6 +55,8 @@ def submerged_mesh(device_name):
         vertices = mesh_clipped_below_waterline.vertices
         faces = mesh_clipped_below_waterline.faces
     meshmagick.mmio.write_GDF(device_name + '.gdf', vertices, faces)
-    return vertices
+
+    # TODO: make writing mesh file BEM software dependent (WAMIT, NEMOH, Capytaine)
     # TODO: user specified mesh symmetry arguments for quicker write and meshing times,
     #  need to change meshmagick for this
+    return
