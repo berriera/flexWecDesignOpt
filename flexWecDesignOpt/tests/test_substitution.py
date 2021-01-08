@@ -1,5 +1,5 @@
 import numpy as np
-from flexWecDesignOpt.substitution import substitute_variables_in_line
+from flexWecDesignOpt.write_input_files import substitute_variables_in_line
 
 
 def test_substitute__0_var_array():

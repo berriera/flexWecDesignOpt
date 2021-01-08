@@ -4,7 +4,7 @@ import os
 from analysis import boundary_condition_frequency_solver
 from analysis import run_wamit
 from file_mgmt import create_case_directory
-from substitution import create_case_files
+from write_input_files import create_case_files
 from mesh import create_mesh_file
 from mesh import submerged_mesh
 

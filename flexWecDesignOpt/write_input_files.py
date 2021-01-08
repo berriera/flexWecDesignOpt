@@ -99,6 +99,8 @@ def create_case_files(common_file_directory, substitution_array):
     import os
     extension_copy_list = ['.pot', '.gdf', '.frc', '.spl', '.wam', '.cfg', '.ms2',
                            '.csf', '.bpi', '.rao', '.dmp', '.txt']
+    # TODO: change extension list to passing in list of file names to be altered
+
     # File extension copy list used in accordance with WAMIT input file list (Chapter 4 of WAMIT user manual)
     files = os.listdir(common_file_directory)
     for bem_input_file in files:

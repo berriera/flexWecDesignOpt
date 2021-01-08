@@ -3,7 +3,7 @@ import sys
 import os
 from file_mgmt import parse_input
 from file_mgmt import create_case_directory
-from substitution import create_case_files
+from write_input_files import create_case_files
 from analysis import run_wamit
 from output import read_output
 from mesh import create_mesh_file
@@ -31,7 +31,7 @@ args = parser.parse_args(sys.argv[1:])
 # TODO: add in test mesh refinement argparse option to pop in first design and visualize it in meshmagick,
 #   with keyboard option to keep going, retry with smaller mesh refinement factor, or cancel
 
-
+# TODO: completely rework main()
 def main():
     # Grabs information from inputted .yaml file
     input_file_names = parse_input(args.input)
