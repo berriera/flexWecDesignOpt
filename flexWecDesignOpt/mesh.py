@@ -1,4 +1,6 @@
-def create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_factor=0.5):
+def create_mesh_file(geometry, device_name, gmsh_exe_location, verbosity=True):
+    # TODO: set default device_name = 'mesh_file'
+    # TODO: make submerged mesh internal
     """This function creates the initial mesh file in .stl format using the software GMSH
 
     Args:
@@ -14,26 +16,20 @@ def create_mesh_file(geometry, device_name, gmsh_exe_location, mesh_refinement_f
     """
     import pygmsh
 
-    print('\tMeshing...')
-
-    meshing_arguments = ['-clscale', str(mesh_refinement_factor),  # set mesh element size factor
-                         '-clcurv', str(360 / 50),  # computes mesh element size from curvature
-                         '-setnumber', 'Mesh.SubdivisionAlgorithm', '1',
-                         # subdivision algorithm 1 means all quadrangles
-                         '-setnumber', 'Mesh.RecombineAll', '1']  # applies recombination algorithm to all surfaces
+    if verbosity:
+        print('\tMeshing...')
 
     mesh = pygmsh.generate_mesh(geometry,
                                 dim=2,
-                                extra_gmsh_arguments=meshing_arguments,
                                 remove_lower_dim_cells=True,
                                 gmsh_path=gmsh_exe_location,
-                                geo_filename=device_name + '.geo',
-                                msh_filename=device_name + '.stl',
                                 mesh_file_type='stl',
                                 verbose=False)
+    mesh.write(device_name + '.stl')
 
 
 def submerged_mesh(device_name):
+    # TODO: change default device name, adjust analysis.py accordingly
     """This function clips the .stl mesh below the waterline then writes the new .gdf mesh file to the current
     output folder.
 
