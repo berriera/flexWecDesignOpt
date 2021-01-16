@@ -13,21 +13,20 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
 
     """
     import numpy as np
-    error_list = []  # TODO: only repeat key error once (fix error_list var to keep appending to existing error_list
     while line_text.find('?') != -1:
         substitution_indices = [position for position, character in enumerate(line_text) if character == '?']
         if len(substitution_indices) % 2 != 0.0:
             raise ValueError("Check line number " + str(line_number) + " in file  " + file_name +
                              " for proper substitution formatting")
         string_substitution = line_text[substitution_indices[0]:substitution_indices[1] + 1]
-        if variables is None:
+        if variables is None:  # TODO: remove line after changing substitution file list
             return
         elif isinstance(variables, np.ndarray):
-            # TODO: enforce try else statements here for checking if var is in dict or if array is out of bounds
+            # TODO: check if var is in dict or if array is out of bounds
             replacement_variable_number = int(line_text[substitution_indices[0] + 1: substitution_indices[1]])
             replacement_string = str(variables[replacement_variable_number - 1])
         elif isinstance(variables, dict):
-            try:
+            try:  # TODO: replace try catch with assertion errors
                 replacement_variable_key = line_text[substitution_indices[0] + 1: substitution_indices[1]]
                 replacement_variable_value = variables[replacement_variable_key]
                 if isinstance(replacement_variable_value, int) or isinstance(replacement_variable_value, float):
@@ -48,9 +47,6 @@ def substitute_variables_in_line(line_text, variables, file_name='', line_number
             except KeyError:
                 error_message = "\tError: Check substitution method for missing key " + replacement_variable_key + \
                                 ".\n\tIt is found on line number " + str(line_number) + " in input file " + file_name
-                if error_message not in error_list:
-                    error_list.append(error_message)
-                    print(error_message)
         else:
             raise TypeError("Returned object type of device substitution should be an array or a dictionary.")
         try:
