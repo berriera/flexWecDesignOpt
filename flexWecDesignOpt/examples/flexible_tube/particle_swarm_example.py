@@ -1,4 +1,5 @@
 import numpy as np
+from examples.flexible_tube import Fl
 from flexible_tube import FlexibleTube
 import analysis
 

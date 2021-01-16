@@ -1,0 +1,11 @@
+Elastic barge - lower order meshing
+ 1  1  1  1  0  0  0  0  0
+ 1000. RHO
+ 0. 0. ?Cg? XCG YCG ZCG
+ 1 IMASS
+  ?mass_matrix? EXMASS
+ 0 IDAMP
+ 1 ISTIF
+?stiffness_matrix? EXSTIF
+0 NBETAH
+0 NFIELD

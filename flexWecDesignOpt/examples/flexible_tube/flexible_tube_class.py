@@ -3,12 +3,11 @@ class FlexibleTube(object):
     import os
 
     # File information
-    defmod_location = r'C:\Users\13365\Desktop\defmod.exe'  # TODO: fix forward and back slashes
-    gmsh_exe_location = r'C:/Users/13365/Documents/gmsh-4.5.6-Windows64/gmsh-4.5.6-Windows64/gmsh'
+    defmod_location = r'C:\Users\13365\Desktop\defmod.exe'
+    gmsh_exe_location = r'C:\Users\13365\Documents\gmsh-4.5.6-Windows64\gmsh-4.5.6-Windows64\gmsh'
     run_wamit_command = r'C:\WAMITv7\wamit'
     input_file_directory = os.getcwd()
-    output_file_directory = r'C:/Users/13365/Desktop/optimization_output'
-    mesh_refinement_factor = 0.40
+    output_file_directory = r'C:\Users\13365\Desktop\optimization_output'
 
     def __init__(self, design_vars): # TODO: clean up self. points
         # from modal_analysis import mass_matrix
@@ -19,7 +18,6 @@ class FlexibleTube(object):
 
         # Simulation parameters
         self.water_rho = 1000.0
-        self.seafloor_depth = 5.0
         self.resonant_mode_count = 10
         self.degrees_of_freedom = 6 + self.resonant_mode_count
         self.maximum_modal_radial_displacement = 0.005
@@ -172,7 +170,7 @@ class FlexibleTube(object):
                                               * (self.maximum_modal_radial_displacement / r_s)
             S = Ss - Ss * nrm_type_2[i - self.mode_type_count] * shape_type_2
             dr[i, :] = np.sqrt(S / math.pi) - r_s
-            # TODO: figure out why f modes are similar shapes for different w values
+            # TODO: figure out why f modes are similar shapes for different w values (check for negative uk and lk values as a start?)
 
         self.nrm_vector = np.concatenate((nrm_type_1, nrm_type_2), axis=None)
 
@@ -186,10 +184,9 @@ class FlexibleTube(object):
         self.w_vector = w_vector
 
     def substitutions(self):
-        # Variable substitutions for input files
+        # Variable substitutions for input_files files
         return {'z_s': self.depth,
                 'mode_count': self.degrees_of_freedom,
-                'seafloor_depth': self.seafloor_depth,
                 'mass_matrix': self.mass_matrix,
                 'damping_matrix': self.damping_matrix,
                 'stiffness_matrix': self.stiffness_matrix,
@@ -211,7 +208,7 @@ class FlexibleTube(object):
         import math
         geometry = pygmsh.opencascade.Geometry()
         geometry.add_cylinder(x0=[-self.length / 2, 0, self.depth], axis=[self.length, 0, 0],
-                              radius=self.radius_s, angle=2 * math.pi, char_length=1)
+                              radius=self.radius_s, angle=2 * math.pi, char_length=0.10)
         return geometry
 
     def objective(self, output_path):  # TODO: figure out how to call power_calculation from here
