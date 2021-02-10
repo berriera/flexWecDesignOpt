@@ -39,9 +39,9 @@ function P_annual = power_calculation(file_folder, froude_scale, Xs, rs, ro, n, 
 
     % Calculate scaled power
     p = load('C:\Users\13365\Desktop\T_Prob_Dist.mat'); % Humbolt Bay Probabilities
-    Pa = interp1(p.Ta/sqrt(froude_scale),p.Pa/100,T,'nearest','extrap'); % Assuming exp model is 1:10 scale
+    Pa = interp1(p.Ta/sqrt(froude_scale),p.Pa/100,T,'nearest','extrap'); % Assuming exp model is 1:froude_scale scale
     P_annual = 0;
-    H = 0.2*ls;
+    H = 0.2*ls;   % 0.2 m wave height
     Y = (H/2)*dL; % Strain amplitude
     for k = 1:length(T)
         P(k) = (8*rho*n*(rs/ro)*pi*pi*Ss/T(k)/T(k))*trapz(x,Y(k,:).^2);
