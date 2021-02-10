@@ -7,8 +7,8 @@ class Device(object):
 
     # File information
     input_file_location = ''
-    copy_file_list = []
-    edit_file_list = []
+    copy_file_list = ['']
+    edit_file_list = ['']
     output_file_location = ''
 
     # Boundary element method file information
@@ -29,7 +29,20 @@ class Device(object):
 
         self.objectives = []
 
+    def parse_input(self):
+        """Opens and reads in specified parameters in the user created .yaml file
 
+        Args:
+            input_file_location (str): location of input.yaml file
+
+        Returns
+            file_names (dict): dictionary of keys: items from input.yaml file
+        """
+        import yaml
+
+        with open(self.input_file_location, 'r') as f:
+            file_names = yaml.safe_load(f)
+        return file_names
 
     def create_case_directory(self):
         import os
@@ -47,7 +60,7 @@ class Device(object):
         os.makedirs(self.case_directory)
         os.chdir(self.case_directory)
 
-    def create_case_files(self, substitution_dict):
+    def create_case_files(self, substitution_dict=None):
         import shutil
         import os
 
@@ -56,18 +69,17 @@ class Device(object):
         if self.verbose:
             print('\tWriting input files...')
 
-        # Find all files in input file location
-        file_list = os.listdir(self.input_file_location)
-        file_copy_list = self.copy_file_list.extend(self.edit_file_list)
+        # Make list of all files in folder to be copied or edited
+        file_copy_list = Device.copy_file_list + Device.edit_file_list
 
         # Copy each input file into the
-        for input_file in file_list:
+        for input_file in file_copy_list:
             full_file_name = os.path.join(self.input_file_location, input_file)
-            if full_file_name in file_copy_list:
+            if input_file in file_copy_list:
                 shutil.copy(full_file_name, self.case_directory)
 
                 # Edit file with substitution variables
-                if input_file in self.edit_file_list:
+                if input_file in Device.edit_file_list:
                     new_file_text = write_input_files.change_case_file(full_file_name, substitution_dict)
                     shutil.copy(full_file_name, self.case_directory)
                     change_file = os.path.join(self.case_directory, input_file)
@@ -80,6 +92,9 @@ class Device(object):
 
         return
 
+    def delete_case_files(self):  # TODO: create function to delete input_files and output files of given names
+        return
+
     def mesh(self):
         import os
         import pygmsh
@@ -90,7 +105,7 @@ class Device(object):
         assert os.path.isfile(self.gmsh_location) or os.path.isfile(self.gmsh_location + '.exe'), \
             'GMSH.exe file in location {} not found'.format(self.gmsh_location)
 
-        mesh = pygmsh.generate_mesh(self.geometry,
+        mesh = pygmsh.generate_mesh(self.mesh_geometry,
                                     dim=2,
                                     remove_lower_dim_cells=True,
                                     gmsh_path=self.gmsh_location,
@@ -123,10 +138,10 @@ class Device(object):
             faces = mesh_clipped_below_waterline.faces
         meshmagick.mmio.write_GDF(self.name + '.gdf', vertices, faces)
         # TODO: healnormals function on mesh_geometry
-        # TODO: user specified mesh_geometry symmetry arguments for quicker write and meshing times for WAMIT using a symmetry
-        #  list device argument
+        # TODO: user specified mesh_geometry symmetry arguments for quicker write and meshing times for WAMIT using a
+        #  symmetry list device argument
 
-    def run_wamit(self, wamit_location=r'C:\WAMITv7\wamit.exe', defmod_location=None):
+    def run_wamit(self):
         import os
         import subprocess
 
@@ -135,10 +150,10 @@ class Device(object):
         if self.verbose:
             print('\tRunning analysis...')
 
-        run_executable_list = [wamit_location]
-        if defmod_location is not None:
-            run_executable_list.append(defmod_location)
-            run_executable_list.append(wamit_location)
+        run_executable_list = [Device.wamit_location]
+        if Device.defmod_location is not None:
+            run_executable_list.append(Device.defmod_location)
+            run_executable_list.append(Device.wamit_location)
 
         for analysis_executable in run_executable_list:
             if self.verbose:
