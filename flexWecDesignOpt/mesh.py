@@ -1,4 +1,4 @@
-def create_mesh_file(device_object, verbosity=True):
+def create_mesh_file(device_object, verbosity=True):  # TODO: delete file?
     # TODO: set default device_name = 'mesh_file'
     """This function creates the initial mesh file in .stl format using the software GMSH
 
@@ -15,19 +15,14 @@ def create_mesh_file(device_object, verbosity=True):
 
     import file_mgmt
 
-    geometry = device_object.mesh
+    geometry = device_object.mesh_geometry
     device_name = device_object.name
     gmsh_exe_location = device_object.gmsh_exe_location
-    analysis_type = device_object.analysis
-
-    current_folder = os.getcwd()
-    relative_meshing_folder_path = file_mgmt.file_information(analysis_type)['mesh_subdirectory']
-
-    if relative_meshing_folder_path is not None:
-        absolute_meshing_folder_path = os.path.join(current_folder, relative_meshing_folder_path)
-        os.chdir(absolute_meshing_folder_path)
+    analysis_type = device_object.analysis_type
 
     assert os.path.isfile(gmsh_exe_location), 'GMSH.exe file in location not found'
+    # TODO: remove need to specify .exe in file name?
+
     if verbosity:
         print('\tMeshing...')
     mesh = pygmsh.generate_mesh(geometry,
@@ -37,9 +32,27 @@ def create_mesh_file(device_object, verbosity=True):
                                 mesh_file_type='stl',
                                 verbose=False)
 
+    current_folder = os.getcwd()
+    relative_meshing_folder_path = file_mgmt.file_information(analysis_type)['mesh_subdirectory']
+
+    if relative_meshing_folder_path is not None:
+        absolute_meshing_folder_path = os.path.join(current_folder, relative_meshing_folder_path)
+        os.chdir(absolute_meshing_folder_path)
+    else:
+        absolute_meshing_folder_path = current_folder
+
     mesh_file_name = device_name + '.stl'
     mesh.write(mesh_file_name)
-    _trim_mesh_below_waterline(device_name=device_name)
+    mesh_stl_location = os.path.join(absolute_meshing_folder_path, mesh_file_name)
+
+    relative_bem_folder_path = file_mgmt.file_information(analysis_type)['bem_subdirectory']
+
+    if relative_bem_folder_path is not None:
+        absolute_bem_folder_path = os.path.join(current_folder, relative_bem_folder_path)
+        os.chdir(absolute_bem_folder_path)
+        mesh_stl_location = os.path.join(absolute_meshing_folder_path, mesh_file_name)
+
+    _trim_mesh_below_waterline(device_name, device_stl_location=mesh_stl_location)
 
     if relative_meshing_folder_path is not None:
         os.chdir(current_folder)
@@ -48,7 +61,7 @@ def create_mesh_file(device_object, verbosity=True):
         print('\tDone.')
 
 
-def _trim_mesh_below_waterline(device_name):
+def _trim_mesh_below_waterline(device_name, device_stl_location):
     """This function clips the .stl mesh below the waterline then writes the new .gdf mesh file to the current
     output folder.
 
@@ -64,8 +77,8 @@ def _trim_mesh_below_waterline(device_name):
     import meshmagick.mmio
     import meshmagick.mesh
 
-    vertices, faces = meshmagick.mmio.load_STL(device_name + '.stl')
-    if np.any(vertices[:, 2] >= 0):
+    vertices, faces = meshmagick.mmio.load_STL(device_stl_location)
+    if np.any(vertices[:, 2] >= 0.0):
         mesh_all = meshmagick.mesh.Mesh(vertices, faces)  # TODO: healnormals function on mesh
         mesh_clip_object = meshmagick.mesh_clipper.MeshClipper(source_mesh=mesh_all)
         mesh_clipped_below_waterline = mesh_clip_object.clipped_mesh
