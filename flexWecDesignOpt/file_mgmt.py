@@ -48,33 +48,3 @@ def parse_input(input_file_location):
         file_names = yaml.safe_load(f)
     return file_names
 
-
-def file_information(analysis_software_key):
-    """Returns file information for each analysis type.
-    'subdirectory' key contains a list of required subdirectory names in a design's folder
-    'input_extensions' key contains a list of input file extensions
-
-    """
-    analysis_software_key = analysis_software_key.lower()
-
-    file_info = {
-        'wamit': {'mesh_subdirectory': None,
-                  'bem_subdirectory': None,
-                  'subdirectories': [],
-                  'input_extensions': [],
-                  },
-        'nemoh': {'mesh_subdirectory': None,
-                  'bem_subdirectory': None,
-                  'subdirectories': [],
-                  'input_extensions': []
-                  },
-        'wec-sim': {'mesh_subdirectory': 'geometry',
-                    'bem_subdirectory': 'hydroData',
-                    'subdirectories': ['hydroData', 'geometry'],
-                    'input_extensions': []
-                    }
-    }
-
-    # TODO: update for NEMOH
-    # TODO: figure out how this should work for using both WAMIT and WEC-Sim
-    return file_info[analysis_software_key]
