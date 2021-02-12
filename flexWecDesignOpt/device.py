@@ -92,9 +92,6 @@ class Device(object):
 
         return
 
-    def delete_case_files(self):  # TODO: create function to delete input_files and output files of given names
-        return
-
     def mesh(self):
         import os
         import pygmsh
@@ -170,7 +167,23 @@ class Device(object):
         pass
 
     def read_wamit(self):
-        pass
+        import matlab.engine
+        import scipy.io
+
+        # Read WAMIT output file using matlab API
+        output_file_name = self.case_directory + Device.name + '.out'
+        matlab_engine = matlab.engine.start_matlab()
+        matlab_engine.read_WAMIT_output(output_file_name)
+
+        # Load .mat file of generated results and send them to a dictionary
+        results_dict = {}
+        scipy.io.loadmat(self.case_directory + 'WAMIT_results.mat', mdict=results_dict, squeeze_me=True)
+        results_dict = results_dict['hydro']
+
+        return results_dict
+
+    def delete_case_files(self):  # TODO: create function to delete input_files and output files of given names
+        return
 
     def evaluate_objective(self):
         pass
