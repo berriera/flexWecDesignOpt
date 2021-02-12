@@ -37,8 +37,13 @@ for i in range(sample_count):
     device.mesh()
     # device.run_wamit()
 
-    #f[i:, 1] = barge.calculate_objective() # TODO: finish objective function parameters
+    f[i:, 0] = barge.calculate_objective()  # TODO: finish objective function parameters
 print('\n\nDone with all designs.')
+f_min = np.min(f)
+design_min = design_variables[np.where(f == f_min)[0][0], :]
 
-# TODO: print min objective function with design variables
+print('\n\tObjective function minimum: {}'.format(np.min(f)))
+print('Design variables corresponding to minimum: ')
+print(design_min)
+
 # TODO: add a .csv import example somewhere
