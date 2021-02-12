@@ -10,6 +10,7 @@ __pycache__/
 *.gdf
 *.csv
 *.mat
+*.asv
 
 # Output folders
 flexWecDesignOpt/examples/output
