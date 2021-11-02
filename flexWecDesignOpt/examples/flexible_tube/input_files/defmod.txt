@@ -1,0 +1,9 @@
+?resonant_mode_count? NEWMDS
+?length? L
+?radius? R
+?distensibility? Di
+?fiber_pretension? Ts
+?water_rho? rho
+?depth? zs
+?resonant_mode_vector? w
+?normalization_factors? nrm

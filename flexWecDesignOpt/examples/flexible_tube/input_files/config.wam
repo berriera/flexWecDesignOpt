@@ -1,0 +1,5 @@
+! Generic configuration file
+RAMGBMAX = 6
+NCPU = 4
+USERID_PATH = C:\wamitv7
+LICENSE_PATH = C:\WAMITv7\license
